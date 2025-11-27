@@ -1,0 +1,35 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+@import 'tailwindcss';
+@plugin 'flowbite-react/plugin/tailwindcss';
+@source '../.flowbite-react/class-list.json';
+
+@theme {
+  --font-sans: 'Playfair Display', sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --color-primary: #e79640;
+  --color-secondary: #9c35bf;
+  --color-panelDark: #2b3039; /* #b89d76 */
+  --color-panelLight: #d6d2c8; /* #cbb79a */
+  --color-textLight: #f2f2f4;
+  --color-textDark: #272b31;
+}
+
+:root {
+  @apply font-sans;
+}
+
+body {
+  @apply font-regular flex bg-black font-sans lg:items-center lg:justify-center;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* Flowbite CSS (import dist file) */
+@import 'flowbite/dist/flowbite.css';
