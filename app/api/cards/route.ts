@@ -20,6 +20,9 @@ export async function POST(req: Request) {
       type_line = null,
       image_url = null,
       json_raw = null,
+      rarity = null,
+      colors = null,
+      color_identity = null,
       finish,
       language = null,
       quantity,
@@ -89,9 +92,12 @@ export async function POST(req: Request) {
           set_name,
           collector_number,
           type_line,
-          rarity: (cardData as any)?.rarity || null,
-          colors: (cardData as any)?.colors || null,
-          color_identity: (cardData as any)?.color_identity || null,
+          rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
+          colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
+          color_identity:
+            (color_identity as any) ??
+            (json_raw as any)?.color_identity ??
+            null,
           image_url,
           json_raw,
           updated_at: now,
@@ -112,9 +118,12 @@ export async function POST(req: Request) {
           set_name,
           collector_number,
           type_line,
-          rarity: (cardData as any)?.rarity || null,
-          colors: (cardData as any)?.colors || null,
-          color_identity: (cardData as any)?.color_identity || null,
+          rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
+          colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
+          color_identity:
+            (color_identity as any) ??
+            (json_raw as any)?.color_identity ??
+            null,
           image_url,
           json_raw,
           has_nonfoil: finish === 'nonfoil' ? true : null,
@@ -156,26 +165,85 @@ export async function POST(req: Request) {
       .limit(1)
       .single();
 
+    // Normalize and validate incoming quantity
+    const incQuantity = Number(quantity);
+    if (
+      !Number.isFinite(incQuantity) ||
+      !Number.isInteger(incQuantity) ||
+      incQuantity === 0
+    ) {
+      return NextResponse.json({ error: 'invalid quantity' }, { status: 400 });
+    }
+
     if (existingOffer && existingOffer.id) {
-      // update quantity (accumulate) and price snapshot
-      const newQuantity = (existingOffer.quantity || 0) + Number(quantity);
-      const updOffer = await supabase
-        .from('card_offers')
-        .update({
-          quantity: newQuantity,
-          price_usd,
-          price_source,
-          price_updated_at: now,
-          variant_sku: variantSku,
-          active: true,
-          updated_at: now,
-        })
-        .eq('id', existingOffer.id);
-      if ((updOffer as any).error) {
-        return NextResponse.json(
-          { error: (updOffer as any).error.message },
-          { status: 500 }
+      // Try to increment quantity atomically via a DB function (recommended)
+      // SQL to create the function in Supabase (run once in SQL editor):
+      //
+      // create or replace function public.increment_card_offer_quantity(offer_id int, inc int)
+      // returns void as $$
+      //   update card_offers set quantity = greatest(0, coalesce(quantity,0) + inc), updated_at = now() where id = offer_id;
+      // $$ language sql security definer;
+      //
+      // If the function exists, call it. If not, fallback to the previous read+write approach.
+
+      // Allow positive or negative increments; final quantity will be clamped to >= 0 by the DB function
+
+      let rpcError = null;
+      try {
+        const rpcRes = await supabase.rpc('increment_card_offer_quantity', {
+          offer_id: existingOffer.id,
+          inc: incQuantity,
+        });
+        // supabase.rpc returns { data, error }
+        // If RPC returns an error, rpcRes.error will be present.
+        if ((rpcRes as any).error) rpcError = (rpcRes as any).error;
+      } catch (err) {
+        rpcError = err;
+      }
+
+      if (!rpcError) {
+        // Update snapshot fields (price, variant, flags)
+        const updOffer = await supabase
+          .from('card_offers')
+          .update({
+            price_usd,
+            price_source,
+            price_updated_at: now,
+            variant_sku: variantSku,
+            active: true,
+            updated_at: now,
+          })
+          .eq('id', existingOffer.id);
+        if ((updOffer as any).error) {
+          return NextResponse.json(
+            { error: (updOffer as any).error.message },
+            { status: 500 }
+          );
+        }
+      } else {
+        // Fallback: read+update (existing behavior), but clamp to >= 0
+        const newQuantity = Math.max(
+          0,
+          (existingOffer.quantity || 0) + incQuantity
         );
+        const updOffer = await supabase
+          .from('card_offers')
+          .update({
+            quantity: newQuantity,
+            price_usd,
+            price_source,
+            price_updated_at: now,
+            variant_sku: variantSku,
+            active: true,
+            updated_at: now,
+          })
+          .eq('id', existingOffer.id);
+        if ((updOffer as any).error) {
+          return NextResponse.json(
+            { error: (updOffer as any).error.message },
+            { status: 500 }
+          );
+        }
       }
     } else {
       const insOffer = await supabase.from('card_offers').insert([
