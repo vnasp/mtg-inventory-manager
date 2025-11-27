@@ -195,7 +195,6 @@ export async function POST(req: Request) {
           inc: incQuantity,
         });
         // supabase.rpc returns { data, error }
-        // If RPC returns an error, rpcRes.error will be present.
         if ((rpcRes as any).error) rpcError = (rpcRes as any).error;
       } catch (err) {
         rpcError = err;
