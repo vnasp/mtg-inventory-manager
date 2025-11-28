@@ -15,6 +15,7 @@ type Props = {
   onClose: () => void;
   offer: any | null;
   fxRate?: number;
+  minCardPriceClp?: number;
 };
 
 export default function CardDetailModal({
@@ -22,12 +23,15 @@ export default function CardDetailModal({
   onClose,
   offer,
   fxRate,
+  minCardPriceClp,
 }: Props) {
   if (!offer) return null;
 
   const card = offer.cards ?? offer.card ?? null;
   const priceUsd = Number(offer.price_usd ?? 0);
-  const converted = fxRate ? Math.round(priceUsd * fxRate) : priceUsd;
+  const priceClp = fxRate ? Math.round(priceUsd * fxRate) : priceUsd;
+  const minCardPrice = minCardPriceClp ?? 100;
+  const converted = fxRate ? Math.max(priceClp, minCardPrice) : priceUsd;
   const formattedPrice = fxRate
     ? new Intl.NumberFormat('es-CL', {
         style: 'currency',
@@ -68,7 +72,9 @@ export default function CardDetailModal({
               <dl className="mt-2 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Set:</dt>
-                  <dd className="uppercase">{card?.set_code || 'N/A'}</dd>
+                  <dd className="uppercase">
+                    {card?.set_name || 'N/A'} - {card?.set_code || 'N/A'}{' '}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Número:</dt>
@@ -88,7 +94,11 @@ export default function CardDetailModal({
               <dl className="mt-2 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Acabado:</dt>
-                  <dd className="uppercase">{offer.finish || 'N/A'}</dd>
+                  <dd className="uppercase">{offer.foil || 'N/A'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="font-medium text-gray-700">Condición:</dt>
+                  <dd className="uppercase">{offer.condition || 'N/A'}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Idioma:</dt>

@@ -38,7 +38,7 @@ function BackofficeHeader({ user }: BackofficeHeaderProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
+    <header className="shrink-0 border-b border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo y título */}
         <div className="flex items-center gap-4">

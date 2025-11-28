@@ -22,7 +22,7 @@ export default async function Page() {
     .single();
 
   return (
-    <div className="flex min-h-screen w-screen flex-col bg-slate-50">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-50">
       {/* Header */}
       <BackofficeHeader
         user={{
