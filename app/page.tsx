@@ -14,6 +14,7 @@ export default async function Page() {
       `id, card_id, finish, language, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
     )
     .eq('active', true)
+    .gt('quantity', 0)
     .order('created_at', { ascending: false });
 
   const settingsRes = await supabase

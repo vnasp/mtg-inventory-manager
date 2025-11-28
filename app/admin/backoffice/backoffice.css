@@ -136,7 +136,7 @@
 }
 
 .backoffice-menu-item-active {
-  @apply bg-linear-to-r from-[#9c35bf] to-[#8b2fad] text-white shadow-md hover:from-[#8b2fad] hover:to-[#7a2a99];
+  @apply from-bo-primary bg-linear-to-r to-[#8b2fad] text-white shadow-md hover:from-[#8b2fad] hover:to-[#7a2a99];
 }
 
 /* Scroll styling */

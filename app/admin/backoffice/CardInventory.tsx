@@ -43,7 +43,7 @@ export default function CardInventory() {
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cards');
+      const res = await fetch('/api/cards?admin=true');
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
       setOffers(data.data || []);
@@ -83,10 +83,16 @@ export default function CardInventory() {
 
       if (!res.ok) throw new Error('Error al actualizar stock');
 
-      // Actualizar localmente
+      // Actualizar localmente (incluyendo active=false si quantity=0)
       setOffers((prev) =>
         prev.map((offer) =>
-          offer.id === offerId ? { ...offer, quantity: newQuantity } : offer
+          offer.id === offerId
+            ? {
+                ...offer,
+                quantity: newQuantity,
+                active: newQuantity > 0 ? offer.active : false,
+              }
+            : offer
         )
       );
 

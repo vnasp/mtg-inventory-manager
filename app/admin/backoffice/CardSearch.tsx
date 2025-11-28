@@ -169,19 +169,23 @@ export default function CardSearch() {
 
           <div>
             <Label htmlFor="language" className="mb-2">
-              Idioma
+              Idioma (opcional)
             </Label>
             <TextInput
               id="language"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              placeholder="ej. en"
+              placeholder="default: en"
             />
           </div>
         </div>
 
         <div>
-          <Button type="submit" disabled={loading} className="bg-primary">
+          <Button
+            type="submit"
+            disabled={loading || !setName || !collectorNumber}
+            className="bg-primary"
+          >
             {loading ? 'Buscando...' : 'Buscar'}
           </Button>
         </div>
@@ -229,7 +233,7 @@ export default function CardSearch() {
                     const usd = formatPrice(card.prices.usd)!;
                     const clp = usd * fxRate;
                     return (
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         <span className="font-medium">Normal:</span> $
                         {usd.toFixed(2)} USD (${clp.toFixed(0)} CLP)
                       </p>
@@ -244,7 +248,7 @@ export default function CardSearch() {
                     const usdF = formatPrice(card.prices.usd_foil)!;
                     const clpF = usdF * fxRate;
                     return (
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         <span className="font-medium">Foil:</span> $
                         {usdF.toFixed(2)} USD (${clpF.toFixed(0)} CLP)
                       </p>

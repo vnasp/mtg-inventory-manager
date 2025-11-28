@@ -271,15 +271,20 @@ export async function GET(req: Request) {
 
     const url = new URL(req.url);
     const q = url.searchParams.get('q') ?? '';
+    const admin = url.searchParams.get('admin') === 'true';
 
-    // Seleccionamos las ofertas activas y traemos los datos de la carta relacionada
+    // Construir query base
     let query = supabase
       .from('card_offers')
       .select(
         `id, card_id, finish, language, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku)`
       )
-      .eq('active', true)
       .order('created_at', { ascending: false });
+
+    // Si NO es admin (frontoffice), filtrar solo activas
+    if (!admin) {
+      query = query.eq('active', true);
+    }
 
     // Si hay query 'q', filtrar por nombre de carta case-insensitive
     if (q && q.trim().length > 0) {
