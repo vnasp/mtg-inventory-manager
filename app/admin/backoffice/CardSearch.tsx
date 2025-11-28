@@ -150,50 +150,61 @@ export default function CardSearch() {
   const handleImport = async (rows: any[]) => {
     setImportProgress({ total: rows.length, current: 0, errors: [] });
 
+    const errors: string[] = [];
+    let successCount = 0;
+
     try {
-      const res = await fetch('/api/import-manabox', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows }),
-      });
+      // Procesar en lotes de 10 para mejor rendimiento
+      const batchSize = 10;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
 
-      const result = await res.json();
+        const batchPromises = batch.map(async (row, batchIdx) => {
+          const globalIdx = i + batchIdx;
+          try {
+            const res = await fetch('/api/import-manabox', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ rows: [row] }),
+            });
 
-      if (!res.ok) {
-        setToast({
-          message: result?.error || 'Error en la importación',
-          type: 'error',
+            const result = await res.json();
+
+            if (!res.ok || !result.ok) {
+              const errorMsg =
+                result?.error ||
+                result?.results?.[0]?.error ||
+                'Error desconocido';
+              errors.push(`Fila ${globalIdx + 1} (${row.Name}): ${errorMsg}`);
+            } else {
+              successCount++;
+            }
+          } catch (err: any) {
+            errors.push(`Fila ${globalIdx + 1} (${row.Name}): ${err.message}`);
+          }
         });
-        setImporting(false);
-        setImportProgress(null);
-        return;
+
+        await Promise.all(batchPromises);
+
+        // Actualizar progreso después de cada lote
+        setImportProgress({
+          total: rows.length,
+          current: Math.min(i + batchSize, rows.length),
+          errors: [...errors],
+        });
       }
-
-      // Procesar resultados
-      const errors: string[] = [];
-      result.results.forEach((r: any, idx: number) => {
-        if (!r.ok) {
-          errors.push(`Fila ${idx + 1} (${r.row}): ${r.error}`);
-        }
-      });
-
-      setImportProgress({
-        total: rows.length,
-        current: rows.length,
-        errors: errors,
-      });
 
       setImporting(false);
 
       // Mostrar resumen
       if (errors.length === 0) {
         setToast({
-          message: `✅ ${result.summary.success} cartas importadas correctamente`,
+          message: `✅ ${successCount} cartas importadas correctamente`,
           type: 'success',
         });
       } else {
         setToast({
-          message: `Importación completada: ${result.summary.success} éxito, ${result.summary.errors} errores`,
+          message: `Importación completada: ${successCount} éxito, ${errors.length} errores`,
           type: 'error',
         });
       }
@@ -203,6 +214,7 @@ export default function CardSearch() {
         type: 'error',
       });
       setImporting(false);
+    } finally {
       setImportProgress(null);
     }
 
@@ -284,12 +296,22 @@ export default function CardSearch() {
       <div className="mb-6">
         <h1>Agregar Cartas</h1>
         <p className="backoffice-section-description">
-          Busca y agrega cartas al inventario desde Scryfall o importa desde CSV
+          Busca y agrega cartas al inventario.
         </p>
       </div>
 
-      {/* Botón de Importar CSV */}
-      <div className="mb-6">
+      {/* Sección Importación CSV */}
+      <div className="mb-8 rounded-lg border-2 border-green-200 bg-green-50 p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-2xl">📁</span>
+          <h2 className="text-lg font-bold text-green-900">
+            Importación CSV ManaBox
+          </h2>
+        </div>
+        <p className="mb-4 text-sm text-green-700">
+          Importa múltiples cartas desde un archivo CSV exportado de ManaBox.
+        </p>
+
         <input
           ref={fileInputRef}
           type="file"
@@ -303,7 +325,7 @@ export default function CardSearch() {
           color="success"
           className="w-full md:w-auto"
         >
-          {importing ? 'Importando...' : '📁 Importar CSV'}
+          {importing ? 'Importando...' : '📁 Seleccionar archivo CSV'}
         </Button>
 
         {importProgress && (
@@ -325,192 +347,218 @@ export default function CardSearch() {
         )}
       </div>
 
-      <div className="mb-4 border-t border-gray-200 pt-6">
-        <h2 className="mb-4 text-lg font-semibold">Buscar en Scryfall</h2>
+      {/* Separador visual */}
+      <div className="relative mb-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-4 text-sm font-medium text-gray-500">
+            O busca una carta individual
+          </span>
+        </div>
       </div>
 
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div>
-            <Label htmlFor="setName" className="mb-2">
-              Set Code
-            </Label>
-            <TextInput
-              id="setName"
-              value={setName}
-              onChange={(e) => setSetName(e.target.value)}
-              placeholder="ej. m21 o KHM"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="collectorNumber" className="mb-2">
-              Collector Number
-            </Label>
-            <TextInput
-              id="collectorNumber"
-              value={collectorNumber}
-              onChange={(e) => setCollectorNumber(e.target.value)}
-              placeholder="ej. 123"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="language" className="mb-2">
-              Idioma (opcional)
-            </Label>
-            <TextInput
-              id="language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              placeholder="default: en"
-            />
-          </div>
+      {/* Sección Buscar en Scryfall */}
+      <div className="rounded-lg border-2 border-purple-200 bg-purple-50 p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-2xl">🔍</span>
+          <h2 className="text-lg font-bold text-purple-900">
+            Buscar en Scryfall
+          </h2>
         </div>
+        <p className="mb-4 text-sm text-purple-700">
+          Busca y agrega cartas individuales desde Scryfall.
+        </p>
 
-        <div>
-          <Button
-            type="submit"
-            disabled={loading || !setName || !collectorNumber}
-            className="bg-primary"
-          >
-            {loading ? 'Buscando...' : 'Buscar'}
-          </Button>
-        </div>
-      </form>
-
-      {error && (
-        <div className="mt-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {card && (
-        <div className="mt-6 rounded-xl border border-stone-300 bg-white p-6">
-          <div className="flex flex-col gap-6 lg:flex-row">
-            {/* Imagen de la carta */}
-            <div className="shrink-0">
-              {card.image_uris?.normal ? (
-                <Image
-                  src={card.image_uris.normal}
-                  alt={card.name}
-                  width={320}
-                  height={445}
-                  className="rounded-lg shadow-lg"
-                />
-              ) : (
-                <div className="h-[445px] w-[320px] rounded-lg bg-gray-200" />
-              )}
+        <form onSubmit={handleSearch} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>
+              <Label htmlFor="setName" className="mb-2">
+                Set Code
+              </Label>
+              <TextInput
+                id="setName"
+                value={setName}
+                onChange={(e) => setSetName(e.target.value)}
+                placeholder="ej. m21 o KHM"
+              />
             </div>
 
-            {/* Información de la carta */}
-            <div className="flex-1 space-y-4">
-              <div>
-                <h3>{card.name}</h3>
-                <p className="text-sm text-gray-600">
-                  Set: {card.set_name} ({card.collector_number})
-                </p>
-                <p className="text-sm text-gray-600">Tipo: {card.type_line}</p>
+            <div>
+              <Label htmlFor="collectorNumber" className="mb-2">
+                Collector Number
+              </Label>
+              <TextInput
+                id="collectorNumber"
+                value={collectorNumber}
+                onChange={(e) => setCollectorNumber(e.target.value)}
+                placeholder="ej. 123"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="language" className="mb-2">
+                Idioma (opcional)
+              </Label>
+              <TextInput
+                id="language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                placeholder="default: en"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Button
+              type="submit"
+              disabled={loading || !setName || !collectorNumber}
+              className="bg-primary"
+            >
+              {loading ? 'Buscando...' : 'Buscar'}
+            </Button>
+          </div>
+        </form>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {card && (
+          <div className="mt-6 rounded-xl border border-stone-300 bg-white p-6">
+            <div className="flex flex-col gap-6 lg:flex-row">
+              {/* Imagen de la carta */}
+              <div className="shrink-0">
+                {card.image_uris?.normal ? (
+                  <Image
+                    src={card.image_uris.normal}
+                    alt={card.name}
+                    width={320}
+                    height={445}
+                    className="rounded-lg shadow-lg"
+                  />
+                ) : (
+                  <div className="h-[445px] w-[320px] rounded-lg bg-gray-200" />
+                )}
               </div>
 
-              {/* Precios */}
-              <div className="space-y-2 rounded-lg bg-gray-50 p-4">
-                <h4>Precios</h4>
-                {formatPrice(card.prices.usd) != null ? (
-                  (() => {
-                    const usd = formatPrice(card.prices.usd)!;
-                    const clp = usd * fxRate;
-                    return (
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Normal:</span> $
-                        {usd.toFixed(2)} USD (${clp.toFixed(0)} CLP)
-                      </p>
-                    );
-                  })()
-                ) : (
-                  <p className="text-sm text-gray-500">Normal: -</p>
-                )}
-
-                {formatPrice(card.prices.usd_foil) != null ? (
-                  (() => {
-                    const usdF = formatPrice(card.prices.usd_foil)!;
-                    const clpF = usdF * fxRate;
-                    return (
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Foil:</span> $
-                        {usdF.toFixed(2)} USD (${clpF.toFixed(0)} CLP)
-                      </p>
-                    );
-                  })()
-                ) : (
-                  <p className="text-sm text-gray-500">Foil: -</p>
-                )}
-              </div>
-
-              {/* Agregar carta */}
-              <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4>Agregar al inventario</h4>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="version" className="mb-2">
-                      Versión
-                    </Label>
-                    <Select
-                      id="version"
-                      value={version}
-                      onChange={(e) => setVersion(e.target.value as any)}
-                    >
-                      <option value="">Seleccionar versión</option>
-                      {formatPrice(card.prices.usd) != null && (
-                        <option value="normal">
-                          Normal — ${formatPrice(card.prices.usd)!.toFixed(2)}{' '}
-                          USD ($
-                          {(formatPrice(card.prices.usd)! * fxRate).toFixed(
-                            0
-                          )}{' '}
-                          CLP)
-                        </option>
-                      )}
-                      {formatPrice(card.prices.usd_foil) != null && (
-                        <option value="foil">
-                          Foil — $
-                          {formatPrice(card.prices.usd_foil)!.toFixed(2)} USD ($
-                          {(
-                            formatPrice(card.prices.usd_foil)! * fxRate
-                          ).toFixed(0)}{' '}
-                          CLP)
-                        </option>
-                      )}
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="stock" className="mb-2">
-                      Stock
-                    </Label>
-                    <TextInput
-                      id="stock"
-                      type="number"
-                      min={0}
-                      value={stock}
-                      onChange={(e) => setStock(Number(e.target.value))}
-                    />
-                  </div>
+              {/* Información de la carta */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <h3>{card.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    Set: {card.set_name} ({card.collector_number})
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Tipo: {card.type_line}
+                  </p>
                 </div>
 
-                <Button
-                  onClick={handleAddCard}
-                  disabled={!version || stock <= 0}
-                  className="bg-primary w-full"
-                >
-                  Agregar carta
-                </Button>
+                {/* Precios */}
+                <div className="space-y-2 rounded-lg bg-gray-50 p-4">
+                  <h4>Precios</h4>
+                  {formatPrice(card.prices.usd) != null ? (
+                    (() => {
+                      const usd = formatPrice(card.prices.usd)!;
+                      const clp = usd * fxRate;
+                      return (
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Normal:</span> $
+                          {usd.toFixed(2)} USD (${clp.toFixed(0)} CLP)
+                        </p>
+                      );
+                    })()
+                  ) : (
+                    <p className="text-sm text-gray-500">Normal: -</p>
+                  )}
+
+                  {formatPrice(card.prices.usd_foil) != null ? (
+                    (() => {
+                      const usdF = formatPrice(card.prices.usd_foil)!;
+                      const clpF = usdF * fxRate;
+                      return (
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Foil:</span> $
+                          {usdF.toFixed(2)} USD (${clpF.toFixed(0)} CLP)
+                        </p>
+                      );
+                    })()
+                  ) : (
+                    <p className="text-sm text-gray-500">Foil: -</p>
+                  )}
+                </div>
+
+                {/* Agregar carta */}
+                <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <h4>Agregar al inventario</h4>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <Label htmlFor="version" className="mb-2">
+                        Versión
+                      </Label>
+                      <Select
+                        id="version"
+                        value={version}
+                        onChange={(e) => setVersion(e.target.value as any)}
+                      >
+                        <option value="">Seleccionar versión</option>
+                        {formatPrice(card.prices.usd) != null && (
+                          <option value="normal">
+                            Normal — ${formatPrice(card.prices.usd)!.toFixed(2)}{' '}
+                            USD ($
+                            {(formatPrice(card.prices.usd)! * fxRate).toFixed(
+                              0
+                            )}{' '}
+                            CLP)
+                          </option>
+                        )}
+                        {formatPrice(card.prices.usd_foil) != null && (
+                          <option value="foil">
+                            Foil — $
+                            {formatPrice(card.prices.usd_foil)!.toFixed(2)} USD
+                            ($
+                            {(
+                              formatPrice(card.prices.usd_foil)! * fxRate
+                            ).toFixed(0)}{' '}
+                            CLP)
+                          </option>
+                        )}
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="stock" className="mb-2">
+                        Stock
+                      </Label>
+                      <TextInput
+                        id="stock"
+                        type="number"
+                        min={0}
+                        value={stock}
+                        onChange={(e) => setStock(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleAddCard}
+                    disabled={!version || stock <= 0}
+                    className="bg-primary w-full"
+                  >
+                    Agregar carta
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+      {/* Fin sección Scryfall */}
+
       {toast && (
         <ToastNotification
           message={toast.message}

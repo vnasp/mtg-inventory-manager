@@ -10,6 +10,7 @@ import type { Filters } from './CatalogClient';
 type Props = {
   offers: any[];
   fxRate?: number;
+  minCardPriceClp?: number;
   filters: Filters;
   onOpenFilters?: () => void;
 };
@@ -17,6 +18,7 @@ type Props = {
 export default function RightSheet({
   offers,
   fxRate,
+  minCardPriceClp,
   filters,
   onOpenFilters,
 }: Props) {
@@ -75,10 +77,12 @@ export default function RightSheet({
       // Filtro de rango de precio
       if (filters.priceRange && fxRate) {
         const [minPrice, maxPrice] = filters.priceRange;
+        const minCardPrice = minCardPriceClp ?? 100;
         filtered = filtered.filter((offer) => {
           const priceUsd = Number(offer.price_usd ?? 0);
           const priceClp = Math.round(priceUsd * fxRate);
-          return priceClp >= minPrice && priceClp <= maxPrice;
+          const finalPrice = Math.max(priceClp, minCardPrice);
+          return finalPrice >= minPrice && finalPrice <= maxPrice;
         });
       }
 
@@ -179,7 +183,7 @@ export default function RightSheet({
   };
 
   return (
-    <main className="mt-[5%] space-y-4 p-1 sm:space-y-6 lg:mt-[10%] lg:space-y-8 lg:p-0">
+    <main className="space-y-4 p-1 sm:space-y-6 lg:space-y-8 lg:p-0">
       <section>
         <div className="bg-panelLight flex w-full flex-col items-center justify-center gap-3 rounded-xl p-3 shadow-[0_3px_6px_rgba(0,0,0,0.5)] lg:mt-0">
           {/* SearchBar */}
@@ -206,15 +210,20 @@ export default function RightSheet({
           <p className="text-white">No hay cartas disponibles.</p>
         ) : (
           <>
-            <div className="mt-[30%] grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:mt-0 lg:grid-cols-5 lg:gap-6">
+            <div className="mt-[30%] grid gap-2 md:grid-cols-5 lg:mt-0 lg:grid-cols-5 lg:gap-3">
               {currentItems.map((o) => {
                 const card = o.cards ?? o.card ?? null;
 
                 // Precio en USD desde la oferta (fallback a 0 si no existe)
                 const priceUsd = Number(o.price_usd ?? 0);
                 // Si fxRate está presente, convertir; si no, mostrar USD sin conversión
-                const converted = fxRate
+                const priceClp = fxRate
                   ? Math.round(priceUsd * fxRate)
+                  : priceUsd;
+                // Aplicar precio mínimo si hay fxRate
+                const minCardPrice = minCardPriceClp ?? 100;
+                const converted = fxRate
+                  ? Math.max(priceClp, minCardPrice)
                   : priceUsd;
 
                 // Formatear: si hay fxRate asumimos CLP, si no mostramos USD
@@ -233,10 +242,10 @@ export default function RightSheet({
                   <article
                     key={o.id}
                     onClick={() => openModal(o)}
-                    className="relative cursor-pointer rounded-xl bg-transparent px-2 py-3 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.4),0_2px_2px_rgba(0,0,0,0.5)] transition-transform duration-200 hover:scale-[1.02]"
+                    className="relative cursor-pointer rounded-xl bg-transparent px-0.5 py-2 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.4),0_2px_2px_rgba(0,0,0,0.5)] transition-transform duration-200 hover:scale-[1.02]"
                   >
                     {/* Badge de precio en la esquina superior derecha */}
-                    <div className="bg-secondary absolute top-2 right-2 z-10 rounded-md px-2 py-0.5 text-xs font-semibold text-white shadow-sm lg:top-3 lg:right-3 lg:px-3 lg:py-1 lg:text-sm">
+                    <div className="bg-secondary absolute top-1 right-1 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm lg:top-2 lg:right-2 lg:px-2 lg:text-xs">
                       {formattedPrice}
                     </div>
 
@@ -244,9 +253,9 @@ export default function RightSheet({
                       <Image
                         src={card.image_url}
                         alt={card.name}
-                        width={180}
-                        height={251}
-                        className="mx-auto aspect-5/7 w-full rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                        width={100}
+                        height={140}
+                        className="mx-auto w-full rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
                       />
                     ) : (
                       <div className="mx-auto aspect-5/7 w-full rounded-lg bg-stone-200" />
@@ -280,6 +289,7 @@ export default function RightSheet({
         onClose={closeModal}
         offer={selectedOffer}
         fxRate={fxRate}
+        minCardPriceClp={minCardPriceClp}
       />
     </main>
   );
