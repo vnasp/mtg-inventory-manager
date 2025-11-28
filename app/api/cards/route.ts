@@ -17,8 +17,9 @@ export async function POST(req: Request) {
       rarity = null,
       colors = null,
       color_identity = null,
-      finish,
+      foil,
       language = null,
+      condition = 'near_mint',
       quantity,
       price_usd = null,
       price_source = 'scryfall',
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       (json_raw && (json_raw as any)?.lang) ??
       'EN';
 
-    if (!name || !set_code || !collector_number || !finish || !quantity) {
+    if (!name || !set_code || !collector_number || !foil || !quantity) {
       return NextResponse.json({ error: 'missing fields' }, { status: 400 });
     }
 
@@ -112,9 +113,9 @@ export async function POST(req: Request) {
             null,
           image_url,
           json_raw,
-          has_nonfoil: finish === 'nonfoil' ? true : null,
-          has_foil: finish === 'foil' ? true : null,
-          has_etched: finish === 'etched' ? true : null,
+          has_nonfoil: foil === 'nonfoil' ? true : null,
+          has_foil: foil === 'foil' ? true : null,
+          has_etched: foil === 'etched' ? true : null,
           created_at: now,
           updated_at: now,
         },
@@ -140,14 +141,28 @@ export async function POST(req: Request) {
     }
 
     // 2) Upsert offer (variant)
+    const conditionCode =
+      condition === 'near_mint'
+        ? 'NM'
+        : condition === 'lightly_played'
+          ? 'LP'
+          : condition === 'moderately_played'
+            ? 'MP'
+            : condition === 'heavily_played'
+              ? 'HP'
+              : condition === 'damaged'
+                ? 'DMG'
+                : condition === 'mint'
+                  ? 'M'
+                  : 'NM';
     const variantSku = `${set_code.toLowerCase()}-${String(
       collector_number
-    ).toLowerCase()}-${finish}-${resolvedLanguage}`;
+    ).toLowerCase()}-${foil}-${resolvedLanguage}-${conditionCode}`;
 
     const { data: existingOffer } = await supabase
       .from('card_offers')
       .select('id, quantity')
-      .match({ card_id: cardId, finish, language: resolvedLanguage })
+      .match({ card_id: cardId, foil, language: resolvedLanguage, condition })
       .limit(1)
       .single();
 
@@ -234,8 +249,9 @@ export async function POST(req: Request) {
       const insOffer = await supabase.from('card_offers').insert([
         {
           card_id: cardId,
-          finish,
+          foil,
           language: resolvedLanguage,
+          condition,
           quantity: Number(quantity),
           price_usd,
           price_source,
@@ -277,7 +293,7 @@ export async function GET(req: Request) {
     let query = supabase
       .from('card_offers')
       .select(
-        `id, card_id, finish, language, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku)`
+        `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
       )
       .order('created_at', { ascending: false });
 

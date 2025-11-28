@@ -11,7 +11,7 @@ export default async function Page() {
   const offersRes = await supabase
     .from('card_offers')
     .select(
-      `id, card_id, finish, language, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
+      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
     )
     .eq('active', true)
     .gt('quantity', 0)
@@ -21,6 +21,13 @@ export default async function Page() {
     .from('settings')
     .select('value')
     .eq('key', 'fx_usdclp')
+    .limit(1)
+    .maybeSingle();
+
+  const minPriceRes = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'min_card_price_clp')
     .limit(1)
     .maybeSingle();
 
@@ -35,6 +42,7 @@ export default async function Page() {
 
   const data = offersRes.data as any[] | null;
   const setting = (settingsRes as any)?.data;
+  const minPriceSetting = (minPriceRes as any)?.data;
 
   const offers = (data ?? []) as any[];
 
@@ -58,6 +66,22 @@ export default async function Page() {
     );
   }
 
+  // Resolve min card price from settings
+  let minCardPriceClp = 100; // default
+  try {
+    if (minPriceSetting && minPriceSetting.value != null) {
+      if (typeof minPriceSetting.value === 'object') {
+        minCardPriceClp = Number(minPriceSetting.value.amount);
+      } else {
+        const parsed = JSON.parse(String(minPriceSetting.value));
+        minCardPriceClp = Number(parsed.amount);
+      }
+    }
+  } catch (e) {
+    console.error('Error loading min card price from settings:', e);
+    // Use default value
+  }
+
   return (
     <div className="font-regular flex min-h-screen w-full flex-col items-center justify-center bg-black font-sans lg:flex-row lg:justify-start">
       {/* Logo solo en mobile */}
@@ -70,7 +94,11 @@ export default async function Page() {
       />
 
       <div className="relative min-h-screen w-screen max-w-[calc(100vh*1680/1024)] bg-[url('/assets/img/bg_mobile.webp')] bg-contain bg-top bg-no-repeat lg:h-screen lg:bg-[url('/assets/img/bg_desktop.webp')] lg:bg-center">
-        <CatalogClient offers={offers} fxRate={fxRate} />
+        <CatalogClient
+          offers={offers}
+          fxRate={fxRate}
+          minCardPriceClp={minCardPriceClp}
+        />
       </div>
     </div>
   );

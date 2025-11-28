@@ -84,11 +84,11 @@
 
 /* Modern buttons */
 .backoffice-button-primary {
-  @apply bg-bo-primary hover:bg-bo-primary-hover focus:ring-bo-primary rounded-lg px-4 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:outline-none;
+  @apply bg-bo-primary hover:bg-bo-primary-hover rounded-lg px-4 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none;
 }
 
 .backoffice-button-secondary {
-  @apply border-bo-border text-bo-text-primary hover:bg-bo-bg-hover hover:border-bo-border-medium focus:ring-bo-primary rounded-lg border bg-white px-4 py-2.5 font-semibold shadow-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none;
+  @apply border-bo-border text-bo-text-primary hover:bg-bo-bg-hover hover:border-bo-border-medium rounded-lg border bg-white px-4 py-2.5 font-semibold shadow-sm transition-all duration-200 focus:outline-none;
 }
 
 .backoffice-button-ghost {
@@ -97,7 +97,7 @@
 
 /* Modern inputs */
 .backoffice-input {
-  @apply border-bo-border text-bo-text-primary placeholder-bo-text-tertiary focus:border-bo-primary focus:ring-bo-primary/20 w-full rounded-lg border bg-white px-3.5 py-2.5 shadow-sm transition-all duration-200 focus:ring-2 focus:outline-none;
+  @apply border-bo-border text-bo-text-primary placeholder-bo-text-tertiary focus:border-bo-primary w-full rounded-lg border bg-white px-3.5 py-2.5 shadow-sm transition-all duration-200 focus:outline-none;
 }
 
 /* Table styles */
@@ -167,11 +167,6 @@
 
 .backoffice-animate-in {
   animation: slideIn 0.3s ease-out;
-}
-
-/* Focus ring modern style */
-.backoffice-focus-ring {
-  @apply focus:ring-bo-primary focus:ring-2 focus:ring-offset-2 focus:outline-none;
 }
 
 /* Typography - Section Headers */
