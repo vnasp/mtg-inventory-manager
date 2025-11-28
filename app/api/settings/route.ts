@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient as createSupabase } from '@supabase/supabase-js';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -47,6 +48,66 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ rate });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: (error as any)?.message ?? String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    // Usar cliente admin para bypasear RLS
+    const supabase = createAdminClient();
+    const body = await req.json();
+
+    const { key, value } = body;
+
+    if (!key || !value) {
+      return NextResponse.json(
+        { error: 'Missing key or value' },
+        { status: 400 }
+      );
+    }
+
+    // Validar que el rate sea un número válido
+    if (typeof value === 'object' && value.rate) {
+      const rate = Number(value.rate);
+      if (isNaN(rate) || rate <= 0) {
+        return NextResponse.json(
+          { error: 'Invalid rate value' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Intentar actualizar el registro existente
+    const { data: updateData, error: updateError } = await supabase
+      .from('settings')
+      .update({ value, updated_at: new Date().toISOString() })
+      .eq('key', key)
+      .select();
+
+    // Si no existe, crear uno nuevo
+    if (updateError || !updateData || updateData.length === 0) {
+      const { data: insertData, error: insertError } = await supabase
+        .from('settings')
+        .insert({ key, value })
+        .select();
+
+      if (insertError) {
+        return NextResponse.json(
+          { error: insertError.message },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ success: true, data: insertData });
+    }
+
+    return NextResponse.json({ success: true, data: updateData });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
