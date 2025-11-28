@@ -1,11 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabase } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-// For server-side writes we require a service role key. Prefer SUPABASE_SERVICE_ROLE_KEY.
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseKey =
-  supabaseServiceKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export async function POST(req: Request) {
   try {
@@ -40,16 +34,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'missing fields' }, { status: 400 });
     }
 
-    if (!supabaseServiceKey) {
-      return NextResponse.json(
-        {
-          error:
-            'Server requires SUPABASE_SERVICE_ROLE_KEY for writes. Set SUPABASE_SERVICE_ROLE_KEY in your environment.',
-        },
-        { status: 500 }
-      );
-    }
-    const supabase = createSupabase(supabaseUrl, supabaseKey);
+    // Cliente admin con service role key (solo servidor)
+    const supabase = createAdminClient();
 
     // 1) Upsert card: try find by scryfall_id, else by set_code+collector_number
     let cardId: number | null = null;
@@ -195,7 +181,6 @@ export async function POST(req: Request) {
           inc: incQuantity,
         });
         // supabase.rpc returns { data, error }
-        // If RPC returns an error, rpcRes.error will be present.
         if ((rpcRes as any).error) rpcError = (rpcRes as any).error;
       } catch (err) {
         rpcError = err;
@@ -281,7 +266,8 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const supabase = createSupabase(supabaseUrl, supabaseKey);
+    // Cliente admin con service role key (solo servidor)
+    const supabase = createAdminClient();
 
     const url = new URL(req.url);
     const q = url.searchParams.get('q') ?? '';
