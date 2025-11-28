@@ -183,7 +183,7 @@ export default function RightSheet({
   };
 
   return (
-    <main className="space-y-4 p-1 sm:space-y-6 lg:space-y-8 lg:p-0">
+    <main className="space-y-8 p-1">
       <section>
         <div className="bg-panelLight flex w-full flex-col items-center justify-center gap-3 rounded-xl p-3 shadow-[0_3px_6px_rgba(0,0,0,0.5)] lg:mt-0">
           {/* SearchBar */}
