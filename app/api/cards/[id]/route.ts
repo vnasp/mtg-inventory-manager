@@ -34,9 +34,15 @@ export async function PATCH(
         );
       }
 
+      // Si la cantidad es 0, desactivar automáticamente
+      const updateData: any = { quantity: qNum, updated_at: now };
+      if (qNum === 0) {
+        updateData.active = false;
+      }
+
       const upd = await supabase
         .from('card_offers')
-        .update({ quantity: qNum, updated_at: now })
+        .update(updateData)
         .eq('id', offerId);
 
       if ((upd as any).error) {

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
 import { Button, Label, TextInput, Select, Card } from 'flowbite-react';
 import Image from 'next/image';
@@ -77,7 +77,10 @@ export default function CardSearch() {
 
   const [version, setVersion] = useState<'normal' | 'foil' | ''>('');
   const [stock, setStock] = useState<number>(0);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const handleAddCard = () => {
     if (!card || !version || stock <= 0) return;
@@ -131,7 +134,12 @@ export default function CardSearch() {
 
   return (
     <Card>
-      <h2>Agregar Carta</h2>
+      <div className="mb-6">
+        <h1>Agregar Cartas</h1>
+        <p className="backoffice-section-description">
+          Busca y agrega cartas al inventario desde Scryfall
+        </p>
+      </div>
 
       <form onSubmit={handleSearch} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -161,19 +169,23 @@ export default function CardSearch() {
 
           <div>
             <Label htmlFor="language" className="mb-2">
-              Idioma
+              Idioma (opcional)
             </Label>
             <TextInput
               id="language"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              placeholder="ej. en"
+              placeholder="default: en"
             />
           </div>
         </div>
 
         <div>
-          <Button type="submit" disabled={loading} className="bg-primary">
+          <Button
+            type="submit"
+            disabled={loading || !setName || !collectorNumber}
+            className="bg-primary"
+          >
             {loading ? 'Buscando...' : 'Buscar'}
           </Button>
         </div>
@@ -221,7 +233,7 @@ export default function CardSearch() {
                     const usd = formatPrice(card.prices.usd)!;
                     const clp = usd * fxRate;
                     return (
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         <span className="font-medium">Normal:</span> $
                         {usd.toFixed(2)} USD (${clp.toFixed(0)} CLP)
                       </p>
@@ -236,7 +248,7 @@ export default function CardSearch() {
                     const usdF = formatPrice(card.prices.usd_foil)!;
                     const clpF = usdF * fxRate;
                     return (
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         <span className="font-medium">Foil:</span> $
                         {usdF.toFixed(2)} USD (${clpF.toFixed(0)} CLP)
                       </p>

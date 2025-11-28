@@ -1,6 +1,15 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
-import { Button, TextInput } from 'flowbite-react';
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow,
+  TextInput,
+} from 'flowbite-react';
 import Image from 'next/image';
 import ToastNotification from '@/components/ToastNotification';
 
@@ -26,12 +35,15 @@ export default function CardInventory() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cards');
+      const res = await fetch('/api/cards?admin=true');
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
       setOffers(data.data || []);
@@ -71,10 +83,16 @@ export default function CardInventory() {
 
       if (!res.ok) throw new Error('Error al actualizar stock');
 
-      // Actualizar localmente
+      // Actualizar localmente (incluyendo active=false si quantity=0)
       setOffers((prev) =>
         prev.map((offer) =>
-          offer.id === offerId ? { ...offer, quantity: newQuantity } : offer
+          offer.id === offerId
+            ? {
+                ...offer,
+                quantity: newQuantity,
+                active: newQuantity > 0 ? offer.active : false,
+              }
+            : offer
         )
       );
 
@@ -117,19 +135,20 @@ export default function CardInventory() {
 
   if (loading) {
     return (
-      <div className="bg-panelLight rounded-2xl p-6 text-center shadow-2xl">
-        <p className="text-textDark">Cargando inventario...</p>
+      <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
+        <p className="text-slate-700">Cargando inventario...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-panelLight rounded-2xl p-6 shadow-2xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-textDark text-xl font-bold">
-          Inventario de Cartas
-        </h2>
-        <div className="w-64">
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h1>Inventario de Cartas</h1>
+        <p className="backoffice-section-description mb-4">
+          Listado completo de todas las cartas en stock
+        </p>
+        <div className="w-full md:w-64">
           <TextInput
             placeholder="Buscar por nombre o set..."
             value={searchQuery}
@@ -139,23 +158,23 @@ export default function CardInventory() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-500">
-          <thead className="bg-gray-100 text-xs text-gray-700 uppercase">
-            <tr>
-              <th className="px-6 py-3">Imagen</th>
-              <th className="px-6 py-3">Nombre</th>
-              <th className="px-6 py-3">Set</th>
-              <th className="px-6 py-3">Finish</th>
-              <th className="px-6 py-3">Precio USD</th>
-              <th className="px-6 py-3">Stock</th>
-              <th className="px-6 py-3">Estado</th>
-              <th className="px-6 py-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Nombre</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Set</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Finish</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Precio USD</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Stock</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Estado</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Acciones</TableHeadCell>
+            </TableRow>
+          </TableHead>
+          <TableBody className="divide-y divide-gray-200">
             {filteredOffers.map((offer) => (
-              <tr key={offer.id} className="bg-white hover:bg-gray-50">
-                <td className="px-6 py-4">
+              <TableRow key={offer.id} className="bg-white hover:bg-gray-50">
+                <TableCell className="px-6 py-4">
                   {offer.cards.image_url ? (
                     <Image
                       src={offer.cards.image_url}
@@ -167,27 +186,27 @@ export default function CardInventory() {
                   ) : (
                     <div className="h-[70px] w-[50px] rounded bg-gray-200" />
                   )}
-                </td>
-                <td className="px-6 py-4 font-medium text-gray-900">
+                </TableCell>
+                <TableCell className="px-6 py-4 font-medium text-gray-900">
                   {offer.cards.name}
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   {offer.cards.set_code.toUpperCase()} #
                   {offer.cards.collector_number}
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
                     {offer.finish}
                   </span>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   ${offer.price_usd.toFixed(2)} USD
                   <br />
                   <span className="text-xs text-gray-500">
                     ${(offer.price_usd * fxRate).toFixed(0)} CLP
                   </span>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   <TextInput
                     type="number"
                     min={0}
@@ -200,8 +219,8 @@ export default function CardInventory() {
                     }}
                     className="w-20"
                   />
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   <span
                     className={`rounded-full px-2 py-1 text-xs font-semibold ${
                       offer.active
@@ -211,8 +230,8 @@ export default function CardInventory() {
                   >
                     {offer.active ? 'Activo' : 'Inactivo'}
                   </span>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   <Button
                     size="xs"
                     color={offer.active ? 'failure' : 'success'}
@@ -220,24 +239,24 @@ export default function CardInventory() {
                   >
                     {offer.active ? 'Desactivar' : 'Activar'}
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {filteredOffers.length === 0 && (
           <div className="py-8 text-center text-gray-500">
             No se encontraron cartas
           </div>
         )}
-          {toast && (
-            <ToastNotification
-              message={toast.message}
-              type={toast.type}
-              onClose={() => setToast(null)}
-            />
-          )}
+        {toast && (
+          <ToastNotification
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </div>
   );
