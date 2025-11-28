@@ -9,7 +9,7 @@ const themeVG = createTheme({
         off: 'flex-col',
         on: 'flex-col md:max-w-xl md:flex-row',
       },
-      href: 'hover:bg-gray-100 dark:hover:bg-gray-700',
+      href: 'hover:bg-gray-100',
     },
     img: {
       base: '',
@@ -76,7 +76,7 @@ const themeVG = createTheme({
     inlineWrapper: 'flex items-center cursor-pointer',
   },
   button: {
-    base: 'relative flex items-center justify-center rounded-2xl text-center font-bold uppercase focus:outline-none focus:ring-4 cursor-pointer',
+    base: 'relative flex items-center justify-center rounded-2xl text-center font-bold uppercase focus:outline-none focus:ring-0 cursor-pointer',
     disabled:
       'pointer-events-auto opacity-50 cursor-not-allowed disabled:hover:bg-primary disabled:hover:text-primaryDark',
     color: {
@@ -85,7 +85,7 @@ const themeVG = createTheme({
       active: 'bg-secondary text-white hover:bg-secondary hover:text-white',
       light:
         'bg-cancel text-secondary border-cancel hover:bg-cancel hover:text-white',
-      link: 'text-secondary uppercase underline hover:text-secondary',
+      link: 'bg-transparent text-secondary underline hover:text-primary hover:no-underline focus:ring-0',
       menu: 'bg-transparent text-white hover:border hover:border-secondary',
     },
     outlineColor: {
@@ -130,23 +130,23 @@ const themeVG = createTheme({
     },
     content: {
       base: 'relative h-full w-full p-4 md:h-auto',
-      inner: 'relative flex max-h-[90dvh] flex-col rounded-lg bg-white shadow',
+      inner: 'relative flex max-h-[90dvh] flex-col rounded-lg !bg-white shadow',
     },
     body: {
-      base: 'flex-1 overflow-auto py-10 text-sm',
+      base: 'flex-1 overflow-auto py-10 text-sm !bg-white !text-gray-900',
       popup: 'pt-0',
     },
     header: {
-      base: 'flex items-center justify-start rounded-t border-b-0 px-14 bg-primary',
+      base: 'flex items-center justify-start rounded-t border-b-0 px-14 bg-primary !text-primaryDark',
       popup: 'border-b-0 p-2',
-      title: 'text-[27px] text-start text-primaryDark',
+      title: 'text-[27px] text-start !text-primaryDark',
       close: {
-        base: 'ml-auto hidden items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900',
+        base: 'ml-auto hidden items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 focus:ring-0',
         icon: 'h-5 w-5',
       },
     },
     footer: {
-      base: 'flex items-center space-x-2 rounded-b border-gray-200 p-8',
+      base: 'flex items-center space-x-2 rounded-b border-gray-200 p-8 !bg-white',
       popup: 'border-none',
     },
   },
@@ -210,7 +210,7 @@ const themeVG = createTheme({
         svg: 'h-5 w-5 text-gray-500',
       },
       input: {
-        base: 'block w-full border focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50',
+        base: 'block w-full border focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 !bg-white !text-gray-900',
         sizes: {
           sm: 'p-2 text-sm',
           md: 'p-3 text-md',
@@ -218,16 +218,16 @@ const themeVG = createTheme({
         },
         colors: {
           default:
-            'border-primary bg-white text-primaryDark placeholder-primaryInactive focus:border-primary focus:ring-primary',
+            'border-primary !bg-white !text-primaryDark placeholder-primaryInactive focus:border-primary focus:ring-0',
 
-          gray: 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500',
-          info: 'border-cyan-500 bg-cyan-50 text-cyan-900 placeholder-cyan-700 focus:border-cyan-500 focus:ring-cyan-500',
+          gray: 'border-gray-300 !bg-gray-50 !text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-0',
+          info: 'border-cyan-500 !bg-cyan-50 !text-cyan-900 placeholder-cyan-700 focus:border-cyan-500 focus:ring-0',
           failure:
-            'border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500',
+            'border-red-500 !bg-red-50 !text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-0',
           warning:
-            'border-yellow-500 bg-yellow-50 text-yellow-900 placeholder-yellow-700 focus:border-yellow-500 focus:ring-yellow-500',
+            'border-yellow-500 !bg-yellow-50 !text-yellow-900 placeholder-yellow-700 focus:border-yellow-500 focus:ring-0',
           success:
-            'border-green-500 bg-green-50 text-green-900 placeholder-green-700 focus:border-green-500 focus:ring-green-500',
+            'border-green-500 !bg-green-50 !text-green-900 placeholder-green-700 focus:border-green-500 focus:ring-0',
         },
         withRightIcon: {
           on: 'pr-10',

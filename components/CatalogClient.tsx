@@ -7,17 +7,22 @@ import RightSheet from '@/components/RightSheet';
 type Props = {
   offers: any[];
   fxRate?: number;
+  minCardPriceClp?: number;
 };
 
 export type Filters = {
   language: string;
-  finish: string;
+  foil: string;
   priceRange: [number, number];
   rarity: string;
   colors: string[];
 };
 
-export default function CatalogClient({ offers, fxRate }: Props) {
+export default function CatalogClient({
+  offers,
+  fxRate,
+  minCardPriceClp,
+}: Props) {
   const [showFilters, setShowFilters] = useState(false);
 
   // Calcular rango de precios real
@@ -25,8 +30,12 @@ export default function CatalogClient({ offers, fxRate }: Props) {
     if (!offers || offers.length === 0 || !fxRate)
       return { min: 0, max: 100000 };
 
+    const minPrice = minCardPriceClp ?? 100;
     const prices = offers
-      .map((o) => Math.round(Number(o.price_usd ?? 0) * fxRate))
+      .map((o) => {
+        const priceClp = Math.round(Number(o.price_usd ?? 0) * fxRate);
+        return Math.max(priceClp, minPrice);
+      })
       .filter((p) => p > 0);
 
     if (prices.length === 0) return { min: 0, max: 100000 };
@@ -38,11 +47,11 @@ export default function CatalogClient({ offers, fxRate }: Props) {
       min: Math.floor(min / 1000) * 1000,
       max: Math.ceil(max / 1000) * 1000,
     };
-  }, [offers, fxRate]);
+  }, [offers, fxRate, minCardPriceClp]);
 
   const [filters, setFilters] = useState<Filters>({
     language: 'all',
-    finish: 'all',
+    foil: 'all',
     priceRange: [priceRange.min, priceRange.max],
     rarity: 'all',
     colors: [],
@@ -66,8 +75,13 @@ export default function CatalogClient({ offers, fxRate }: Props) {
 
         <div className="h-full">{''}</div>
 
-        <div className="overflow-y-auto lg:ms-8 lg:h-full">
-          <RightSheet offers={offers} fxRate={fxRate} filters={filters} />
+        <div className="mt-[5%] overflow-y-auto lg:ms-8 lg:mt-[10%] lg:h-full">
+          <RightSheet
+            offers={offers}
+            fxRate={fxRate}
+            minCardPriceClp={minCardPriceClp}
+            filters={filters}
+          />
         </div>
       </div>
 
@@ -122,10 +136,11 @@ export default function CatalogClient({ offers, fxRate }: Props) {
         )}
 
         {/* Panel de cartas */}
-        <div className="w-full px-4 py-4">
+        <div className="mt-[5%] w-full px-4 py-4 lg:mt-[10%]">
           <RightSheet
             offers={offers}
             fxRate={fxRate}
+            minCardPriceClp={minCardPriceClp}
             filters={filters}
             onOpenFilters={() => setShowFilters(true)}
           />

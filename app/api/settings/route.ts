@@ -9,45 +9,76 @@ export async function GET(req: Request) {
   try {
     const supabase = createSupabase(supabaseUrl, supabaseKey);
 
-    const { data, error } = await supabase
+    // Obtener tipo de cambio
+    const { data: fxData, error: fxError } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'fx_usdclp')
       .limit(1)
       .maybeSingle();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (fxError) {
+      return NextResponse.json({ error: fxError.message }, { status: 500 });
     }
 
-    const record = data as any;
-    if (!record || record.value == null) {
-      return NextResponse.json(
-        { error: 'FX rate not configured in settings' },
-        { status: 404 }
-      );
-    }
+    const fxRecord = fxData as any;
+    let rate: number | undefined;
 
-    let rate: number;
-    try {
-      if (typeof record.value === 'object') {
-        rate = Number(record.value.rate);
-      } else {
-        const parsed = JSON.parse(String(record.value));
-        rate = Number(parsed.rate);
+    if (fxRecord && fxRecord.value != null) {
+      try {
+        if (typeof fxRecord.value === 'object') {
+          rate = Number(fxRecord.value.rate);
+        } else {
+          const parsed = JSON.parse(String(fxRecord.value));
+          rate = Number(parsed.rate);
+        }
+
+        if (isNaN(rate)) {
+          rate = undefined;
+        }
+      } catch (e) {
+        console.error('Error parsing FX rate:', e);
+        rate = undefined;
       }
-
-      if (isNaN(rate)) {
-        throw new Error('Invalid rate value');
-      }
-    } catch (e) {
-      return NextResponse.json(
-        { error: 'Invalid FX rate format in settings' },
-        { status: 500 }
-      );
     }
 
-    return NextResponse.json({ rate });
+    // Obtener precio mínimo de carta
+    const { data: minPriceData, error: minPriceError } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'min_card_price_clp')
+      .limit(1)
+      .maybeSingle();
+
+    if (minPriceError) {
+      console.error('Error fetching min card price:', minPriceError);
+    }
+
+    const minPriceRecord = minPriceData as any;
+    let minCardPrice: number | undefined;
+
+    if (minPriceRecord && minPriceRecord.value != null) {
+      try {
+        if (typeof minPriceRecord.value === 'object') {
+          minCardPrice = Number(minPriceRecord.value.amount);
+        } else {
+          const parsed = JSON.parse(String(minPriceRecord.value));
+          minCardPrice = Number(parsed.amount);
+        }
+
+        if (isNaN(minCardPrice)) {
+          minCardPrice = undefined;
+        }
+      } catch (e) {
+        console.error('Error parsing min card price:', e);
+        minCardPrice = undefined;
+      }
+    }
+
+    return NextResponse.json({
+      rate,
+      minCardPrice,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -72,14 +103,26 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Validar que el rate sea un número válido
-    if (typeof value === 'object' && value.rate) {
-      const rate = Number(value.rate);
-      if (isNaN(rate) || rate <= 0) {
-        return NextResponse.json(
-          { error: 'Invalid rate value' },
-          { status: 400 }
-        );
+    // Validar según el tipo de clave
+    if (key === 'fx_usdclp') {
+      if (typeof value === 'object' && value.rate) {
+        const rate = Number(value.rate);
+        if (isNaN(rate) || rate <= 0) {
+          return NextResponse.json(
+            { error: 'Invalid rate value' },
+            { status: 400 }
+          );
+        }
+      }
+    } else if (key === 'min_card_price_clp') {
+      if (typeof value === 'object' && value.amount !== undefined) {
+        const amount = Number(value.amount);
+        if (isNaN(amount) || amount < 0) {
+          return NextResponse.json(
+            { error: 'Invalid amount value' },
+            { status: 400 }
+          );
+        }
       }
     }
 

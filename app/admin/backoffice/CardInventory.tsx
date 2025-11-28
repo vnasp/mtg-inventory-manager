@@ -9,6 +9,8 @@ import {
   TableHeadCell,
   TableRow,
   TextInput,
+  Pagination,
+  Select,
 } from 'flowbite-react';
 import Image from 'next/image';
 import ToastNotification from '@/components/ToastNotification';
@@ -16,8 +18,9 @@ import ToastNotification from '@/components/ToastNotification';
 type CardOffer = {
   id: string;
   card_id: string;
-  finish: string;
+  foil: string;
   language: string;
+  condition: string;
   quantity: number;
   price_usd: number;
   active: boolean;
@@ -35,6 +38,8 @@ export default function CardInventory() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -133,6 +138,27 @@ export default function CardInventory() {
       offer.cards.set_code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredOffers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredOffers.slice(startIndex, endIndex);
+
+  // Reset página al buscar
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Reset página al cambiar items por página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
+  const onPageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
@@ -146,14 +172,33 @@ export default function CardInventory() {
       <div className="mb-6">
         <h1>Inventario de Cartas</h1>
         <p className="backoffice-section-description mb-4">
-          Listado completo de todas las cartas en stock
+          Listado completo de todas las cartas en stock ({filteredOffers.length}{' '}
+          {filteredOffers.length === 1 ? 'carta' : 'cartas'})
         </p>
-        <div className="w-full md:w-64">
-          <TextInput
-            placeholder="Buscar por nombre o set..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="w-full md:w-64">
+            <TextInput
+              placeholder="Buscar por nombre o set..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="itemsPerPage" className="text-sm text-slate-700">
+              Mostrar:
+            </label>
+            <Select
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="w-24"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -164,7 +209,8 @@ export default function CardInventory() {
               <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Nombre</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Set</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Finish</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Foil</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Condición</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Precio USD</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Stock</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Estado</TableHeadCell>
@@ -172,7 +218,7 @@ export default function CardInventory() {
             </TableRow>
           </TableHead>
           <TableBody className="divide-y divide-gray-200">
-            {filteredOffers.map((offer) => (
+            {currentItems.map((offer) => (
               <TableRow key={offer.id} className="bg-white hover:bg-gray-50">
                 <TableCell className="px-6 py-4">
                   {offer.cards.image_url ? (
@@ -196,7 +242,12 @@ export default function CardInventory() {
                 </TableCell>
                 <TableCell className="px-6 py-4">
                   <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
-                    {offer.finish}
+                    {offer.foil}
+                  </span>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+                    {offer.condition}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
@@ -250,6 +301,21 @@ export default function CardInventory() {
             No se encontraron cartas
           </div>
         )}
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              showIcons
+              previousLabel="Anterior"
+              nextLabel="Siguiente"
+            />
+          </div>
+        )}
+
         {toast && (
           <ToastNotification
             message={toast.message}

@@ -17,7 +17,7 @@ export default function LeftPanel({
   priceRange,
 }: Props) {
   const [language, setLanguage] = useState('all');
-  const [finish, setFinish] = useState('all');
+  const [foil, setFoil] = useState('all');
   const [minPrice, setMinPrice] = useState(priceRange.min);
   const [maxPrice, setMaxPrice] = useState(priceRange.max);
   const [rarity, setRarity] = useState('all');
@@ -26,7 +26,7 @@ export default function LeftPanel({
   const handleFilter = () => {
     onFilterChange({
       language,
-      finish,
+      foil,
       priceRange: [minPrice, maxPrice],
       rarity,
       colors: selectedColors,
@@ -41,14 +41,14 @@ export default function LeftPanel({
 
   const clearFilters = () => {
     setLanguage('all');
-    setFinish('all');
+    setFoil('all');
     setMinPrice(priceRange.min);
     setMaxPrice(priceRange.max);
     setRarity('all');
     setSelectedColors([]);
     onFilterChange({
       language: 'all',
-      finish: 'all',
+      foil: 'all',
       priceRange: [priceRange.min, priceRange.max],
       rarity: 'all',
       colors: [],
@@ -89,8 +89,8 @@ export default function LeftPanel({
             Acabado (Foil)
           </label>
           <select
-            value={finish}
-            onChange={(e) => setFinish(e.target.value)}
+            value={foil}
+            onChange={(e) => setFoil(e.target.value)}
             className="mb-3 w-full rounded-md border border-[#a38b6b] bg-[#f7f3ea] px-2 py-1.5 text-xs shadow-inner lg:mb-6 lg:px-3 lg:py-2 lg:text-sm"
           >
             <option value="all">Todos</option>
@@ -154,7 +154,7 @@ export default function LeftPanel({
             <div className="relative h-2">
               <div className="absolute h-2 w-full rounded-lg bg-[#e5dcc8]" />
               <div
-                className="bg-secondary absolute h-2 rounded-lg"
+                className="absolute h-2 rounded-lg bg-black"
                 style={{
                   left: `${((minPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
                   right: `${100 - ((maxPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
@@ -173,7 +173,7 @@ export default function LeftPanel({
                   const val = Number(e.target.value);
                   setMinPrice(Math.min(val, maxPrice - 1000));
                 }}
-                className="[&::-moz-range-thumb]:bg-secondary [&::-webkit-slider-thumb]:bg-secondary pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md"
+                className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md"
               />
               <input
                 type="range"
@@ -188,24 +188,24 @@ export default function LeftPanel({
                   const val = Number(e.target.value);
                   setMaxPrice(Math.max(val, minPrice + 1000));
                 }}
-                className="[&::-moz-range-thumb]:bg-secondary [&::-webkit-slider-thumb]:bg-secondary pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md"
+                className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md"
               />
             </div>
           </div>
 
-          <Button
-            onClick={handleFilter}
-            className="text-textLight bg-primary relative mt-2 w-full overflow-hidden rounded-lg px-3 py-1.5 text-xs font-bold uppercase shadow-[inset_0_2px_2px_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.3)] transition after:absolute after:inset-0 after:rounded-lg after:bg-linear-to-t after:from-orange-300/20 after:to-transparent after:content-[''] hover:brightness-105 active:translate-y-px active:shadow-inner lg:px-4 lg:py-2 lg:text-sm"
-          >
-            Filtrar
-          </Button>
+          <div className="mt-4 flex w-full flex-col items-center justify-center gap-4">
+            <Button
+              color="default"
+              onClick={handleFilter}
+              className="text-textLight bg-primary relative mt-2 w-full overflow-hidden rounded-lg px-3 py-1.5 text-xs font-bold uppercase shadow-[inset_0_2px_2px_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.3)] transition after:absolute after:inset-0 after:rounded-lg after:bg-linear-to-t after:from-orange-300/20 after:to-transparent after:content-[''] hover:brightness-105 active:translate-y-px active:shadow-inner lg:px-4 lg:py-2 lg:text-sm"
+            >
+              Filtrar
+            </Button>
 
-          <Button
-            onClick={clearFilters}
-            className="text-textDark mt-2 w-full cursor-pointer text-center text-xs underline transition-colors hover:text-orange-600 lg:mt-3 lg:text-sm"
-          >
-            Limpiar filtros
-          </Button>
+            <Button color="link" onClick={clearFilters}>
+              Limpiar filtros
+            </Button>
+          </div>
         </div>
       </div>
     </aside>
