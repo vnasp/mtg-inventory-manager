@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button, Label, TextInput, Select, Card } from 'flowbite-react';
 import Image from 'next/image';
 import Papa from 'papaparse';
+import { HiDocumentText, HiSearch } from 'react-icons/hi';
 import ToastNotification from '@/components/ToastNotification';
 
 type CardData = {
@@ -301,14 +302,14 @@ export default function CardSearch() {
       </div>
 
       {/* Sección Importación CSV */}
-      <div className="mb-8 rounded-lg border-2 border-green-200 bg-green-50 p-6">
+      <div className="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
         <div className="mb-4 flex items-center gap-2">
-          <span className="text-2xl">📁</span>
-          <h2 className="text-lg font-bold text-green-900">
+          <HiDocumentText className="h-6 w-6 text-slate-700" />
+          <h2 className="text-lg font-bold text-slate-900">
             Importación CSV ManaBox
           </h2>
         </div>
-        <p className="mb-4 text-sm text-green-700">
+        <p className="mb-4 text-sm text-slate-600">
           Importa múltiples cartas desde un archivo CSV exportado de ManaBox.
         </p>
 
@@ -322,10 +323,11 @@ export default function CardSearch() {
         <Button
           onClick={handleImportCSV}
           disabled={importing}
-          color="success"
+          color="gray"
           className="w-full md:w-auto"
         >
-          {importing ? 'Importando...' : '📁 Seleccionar archivo CSV'}
+          <HiDocumentText className="mr-2 h-5 w-5" />
+          {importing ? 'Importando...' : 'SELECCIONAR ARCHIVO CSV'}
         </Button>
 
         {importProgress && (
@@ -360,14 +362,14 @@ export default function CardSearch() {
       </div>
 
       {/* Sección Buscar en Scryfall */}
-      <div className="rounded-lg border-2 border-purple-200 bg-purple-50 p-6">
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
         <div className="mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔍</span>
-          <h2 className="text-lg font-bold text-purple-900">
+          <HiSearch className="h-6 w-6 text-slate-700" />
+          <h2 className="text-lg font-bold text-slate-900">
             Buscar en Scryfall
           </h2>
         </div>
-        <p className="mb-4 text-sm text-purple-700">
+        <p className="mb-4 text-sm text-slate-600">
           Busca y agrega cartas individuales desde Scryfall.
         </p>
 
