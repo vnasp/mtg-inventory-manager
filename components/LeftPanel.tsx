@@ -193,19 +193,19 @@ export default function LeftPanel({
             </div>
           </div>
 
-          <Button
-            onClick={handleFilter}
-            className="text-textLight bg-primary relative mt-2 w-full overflow-hidden rounded-lg px-3 py-1.5 text-xs font-bold uppercase shadow-[inset_0_2px_2px_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.3)] transition after:absolute after:inset-0 after:rounded-lg after:bg-linear-to-t after:from-orange-300/20 after:to-transparent after:content-[''] hover:brightness-105 active:translate-y-px active:shadow-inner lg:px-4 lg:py-2 lg:text-sm"
-          >
-            Filtrar
-          </Button>
+          <div className="mt-4 flex w-full flex-col items-center justify-center gap-4">
+            <Button
+              color="default"
+              onClick={handleFilter}
+              className="text-textLight bg-primary relative mt-2 w-full overflow-hidden rounded-lg px-3 py-1.5 text-xs font-bold uppercase shadow-[inset_0_2px_2px_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.3)] transition after:absolute after:inset-0 after:rounded-lg after:bg-linear-to-t after:from-orange-300/20 after:to-transparent after:content-[''] hover:brightness-105 active:translate-y-px active:shadow-inner lg:px-4 lg:py-2 lg:text-sm"
+            >
+              Filtrar
+            </Button>
 
-          <Button
-            onClick={clearFilters}
-            className="text-textDark mt-2 w-full cursor-pointer text-center text-xs underline transition-colors hover:text-orange-600 lg:mt-3 lg:text-sm"
-          >
-            Limpiar filtros
-          </Button>
+            <Button color="link" onClick={clearFilters}>
+              Limpiar filtros
+            </Button>
+          </div>
         </div>
       </div>
     </aside>

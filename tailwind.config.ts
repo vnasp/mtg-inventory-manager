@@ -2,6 +2,7 @@ import flowbite from 'flowbite/plugin';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: false, // Desactiva completamente el dark mode
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
