@@ -1,10 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createClient as createSupabase } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseKey =
-  supabaseServiceKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export async function PATCH(
   req: NextRequest,
@@ -26,7 +21,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'missing fields' }, { status: 400 });
     }
 
-    const supabase = createSupabase(supabaseUrl, supabaseKey);
+    // Cliente admin con service role key (solo servidor)
+    const supabase = createAdminClient();
     const now = new Date().toISOString();
 
     if (quantity !== undefined) {
