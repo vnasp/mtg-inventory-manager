@@ -1,7 +1,7 @@
 // Tipos y enumeraciones para las tablas `cards` y `card_offers`
 
 // enums lógicas
-export type CardFinish = 'nonfoil' | 'foil' | 'etched';
+export type CardFoil = 'nonfoil' | 'foil' | 'etched';
 export type CardCondition =
   | 'mint'
   | 'near_mint'
@@ -47,7 +47,7 @@ export interface CardOffer {
   id: number;
   card_id: number;
 
-  foil: CardFinish; // text: nonfoil | foil | etched (tipo de acabado de la carta)
+  foil: CardFoil; // text: nonfoil | foil | etched (tipo de acabado de la carta)
   language: string; // 'EN' por defecto
   condition: CardCondition; // mint | near_mint | lightly_played | moderately_played | heavily_played | damaged
 
