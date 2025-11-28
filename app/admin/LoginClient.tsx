@@ -39,7 +39,7 @@ export default function LoginClient() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-black">
-      <div className="bg-panelLight w-full max-w-md space-y-8 rounded-2xl p-8 shadow-2xl">
+      <div className="w-full max-w-md space-y-8 rounded-xl border border-slate-200 bg-white p-8 shadow-lg">
         {/* Logo */}
         <div className="flex justify-center">
           <Image

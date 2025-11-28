@@ -1,13 +1,13 @@
 /**
  * Admin Supabase client using SERVICE_ROLE_KEY
- * 
+ *
  * ⚠️ ADVERTENCIA DE SEGURIDAD ⚠️
  * Este cliente usa la SERVICE_ROLE_KEY que tiene permisos de administrador.
  * SOLO debe usarse en:
  * - Route Handlers (/app/api/*)
  * - Server Actions
  * - Scripts de administración/cron jobs
- * 
+ *
  * NUNCA:
  * - Exponerlo en componentes cliente
  * - Usarlo en código que corre en el navegador
@@ -26,14 +26,14 @@ if (!supabaseUrl) {
 if (!supabaseServiceRoleKey) {
   throw new Error(
     'SUPABASE_SERVICE_ROLE_KEY is required for admin operations. ' +
-    'This should be set in your environment variables (NOT with NEXT_PUBLIC_ prefix).'
+      'This should be set in your environment variables (NOT with NEXT_PUBLIC_ prefix).'
   );
 }
 
 /**
  * Cliente de Supabase con privilegios de administrador.
  * Bypasea Row Level Security (RLS).
- * 
+ *
  * @returns Cliente de Supabase con service role key
  */
 export const createAdminClient = () => {

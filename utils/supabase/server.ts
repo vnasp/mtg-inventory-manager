@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient } from '@supabase/ssr';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,7 +12,7 @@ export const createClient = (cookieStore: any) => {
     cookies: {
       getAll() {
         try {
-          if (typeof asAny.getAll === "function") {
+          if (typeof asAny.getAll === 'function') {
             return asAny.getAll();
           }
           // cookieStore might be a Promise
@@ -23,7 +23,7 @@ export const createClient = (cookieStore: any) => {
       },
       setAll(cookiesToSet) {
         try {
-          if (typeof asAny.set === "function") {
+          if (typeof asAny.set === 'function') {
             cookiesToSet.forEach(({ name, value, options }: any) =>
               asAny.set(name, value, options)
             );
