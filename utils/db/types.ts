@@ -2,6 +2,13 @@
 
 // enums lógicas
 export type CardFinish = 'nonfoil' | 'foil' | 'etched';
+export type CardCondition =
+  | 'mint'
+  | 'near_mint'
+  | 'lightly_played'
+  | 'moderately_played'
+  | 'heavily_played'
+  | 'damaged';
 export type CardRarity =
   | 'common'
   | 'uncommon'
@@ -40,8 +47,9 @@ export interface CardOffer {
   id: number;
   card_id: number;
 
-  finish: CardFinish; // nonfoil | foil | etched
+  foil: CardFinish; // text: nonfoil | foil | etched (tipo de acabado de la carta)
   language: string; // 'EN' por defecto
+  condition: CardCondition; // mint | near_mint | lightly_played | moderately_played | heavily_played | damaged
 
   quantity: number; // >= 0
   price_usd?: number | null; // snapshot Scryfall en USD

@@ -11,7 +11,7 @@ export default async function Page() {
   const offersRes = await supabase
     .from('card_offers')
     .select(
-      `id, card_id, finish, language, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
+      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
     )
     .eq('active', true)
     .gt('quantity', 0)

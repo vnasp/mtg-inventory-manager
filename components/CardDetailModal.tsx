@@ -88,7 +88,11 @@ export default function CardDetailModal({
               <dl className="mt-2 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Acabado:</dt>
-                  <dd className="uppercase">{offer.finish || 'N/A'}</dd>
+                  <dd className="uppercase">{offer.foil || 'N/A'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="font-medium text-gray-700">Condición:</dt>
+                  <dd className="uppercase">{offer.condition || 'N/A'}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="font-medium text-gray-700">Idioma:</dt>

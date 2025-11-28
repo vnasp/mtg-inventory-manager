@@ -16,8 +16,9 @@ import ToastNotification from '@/components/ToastNotification';
 type CardOffer = {
   id: string;
   card_id: string;
-  finish: string;
+  foil: string;
   language: string;
+  condition: string;
   quantity: number;
   price_usd: number;
   active: boolean;
@@ -164,7 +165,8 @@ export default function CardInventory() {
               <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Nombre</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Set</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Finish</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Foil</TableHeadCell>
+              <TableHeadCell className="px-6 py-3">Condición</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Precio USD</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Stock</TableHeadCell>
               <TableHeadCell className="px-6 py-3">Estado</TableHeadCell>
@@ -196,7 +198,12 @@ export default function CardInventory() {
                 </TableCell>
                 <TableCell className="px-6 py-4">
                   <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
-                    {offer.finish}
+                    {offer.foil}
+                  </span>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+                    {offer.condition}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">

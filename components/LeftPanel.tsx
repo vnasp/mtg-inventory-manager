@@ -17,7 +17,7 @@ export default function LeftPanel({
   priceRange,
 }: Props) {
   const [language, setLanguage] = useState('all');
-  const [finish, setFinish] = useState('all');
+  const [foil, setFoil] = useState('all');
   const [minPrice, setMinPrice] = useState(priceRange.min);
   const [maxPrice, setMaxPrice] = useState(priceRange.max);
   const [rarity, setRarity] = useState('all');
@@ -26,7 +26,7 @@ export default function LeftPanel({
   const handleFilter = () => {
     onFilterChange({
       language,
-      finish,
+      foil,
       priceRange: [minPrice, maxPrice],
       rarity,
       colors: selectedColors,
@@ -41,14 +41,14 @@ export default function LeftPanel({
 
   const clearFilters = () => {
     setLanguage('all');
-    setFinish('all');
+    setFoil('all');
     setMinPrice(priceRange.min);
     setMaxPrice(priceRange.max);
     setRarity('all');
     setSelectedColors([]);
     onFilterChange({
       language: 'all',
-      finish: 'all',
+      foil: 'all',
       priceRange: [priceRange.min, priceRange.max],
       rarity: 'all',
       colors: [],
@@ -89,8 +89,8 @@ export default function LeftPanel({
             Acabado (Foil)
           </label>
           <select
-            value={finish}
-            onChange={(e) => setFinish(e.target.value)}
+            value={foil}
+            onChange={(e) => setFoil(e.target.value)}
             className="mb-3 w-full rounded-md border border-[#a38b6b] bg-[#f7f3ea] px-2 py-1.5 text-xs shadow-inner lg:mb-6 lg:px-3 lg:py-2 lg:text-sm"
           >
             <option value="all">Todos</option>

@@ -100,8 +100,9 @@ export default function CardSearch() {
           type_line: card.type_line,
           image_url: card.image_uris?.normal ?? null,
           json_raw: card,
-          finish: version === 'normal' ? 'nonfoil' : 'foil',
+          foil: version === 'normal' ? 'nonfoil' : 'foil',
           language: 'en',
+          condition: 'near_mint',
           quantity: stock,
           price_usd:
             version === 'normal'

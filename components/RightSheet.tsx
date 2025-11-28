@@ -65,11 +65,10 @@ export default function RightSheet({
         );
       }
 
-      // Filtro de acabado (finish)
-      if (filters.finish !== 'all') {
+      // Filtro de acabado (foil)
+      if (filters.foil !== 'all') {
         filtered = filtered.filter(
-          (offer) =>
-            offer.finish?.toLowerCase() === filters.finish.toLowerCase()
+          (offer) => offer.foil?.toLowerCase() === filters.foil.toLowerCase()
         );
       }
 
@@ -144,7 +143,7 @@ export default function RightSheet({
           return String(name).toLowerCase().includes(qLower);
         });
 
-        // Aplicar filtros adicionales (idioma, finish)
+        // Aplicar filtros adicionales (idioma, foil)
         const filtered = applyFilters(searchFiltered);
         setDisplayed(filtered);
         setCurrentPage(1); // Reset a la primera página al buscar

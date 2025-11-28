@@ -11,7 +11,7 @@ type Props = {
 
 export type Filters = {
   language: string;
-  finish: string;
+  foil: string;
   priceRange: [number, number];
   rarity: string;
   colors: string[];
@@ -42,7 +42,7 @@ export default function CatalogClient({ offers, fxRate }: Props) {
 
   const [filters, setFilters] = useState<Filters>({
     language: 'all',
-    finish: 'all',
+    foil: 'all',
     priceRange: [priceRange.min, priceRange.max],
     rarity: 'all',
     colors: [],
