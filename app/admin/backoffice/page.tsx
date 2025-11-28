@@ -17,7 +17,12 @@ export default async function Page() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-start gap-8 p-4 lg:p-8">
       {/* Header */}
-      <BackofficeHeader user={{ email: user.email ?? 'Sin correo' }} />
+      <BackofficeHeader
+        user={{
+          email: user.email ?? 'Sin correo',
+          user_metadata: user.user_metadata,
+        }}
+      />
 
       {/* Tabs Content */}
       <BackofficeContent />
