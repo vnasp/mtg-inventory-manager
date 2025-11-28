@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
 import { Button, Label, TextInput, Select, Card } from 'flowbite-react';
 import Image from 'next/image';
@@ -77,7 +77,10 @@ export default function CardSearch() {
 
   const [version, setVersion] = useState<'normal' | 'foil' | ''>('');
   const [stock, setStock] = useState<number>(0);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const handleAddCard = () => {
     if (!card || !version || stock <= 0) return;
@@ -131,7 +134,12 @@ export default function CardSearch() {
 
   return (
     <Card>
-      <h2>Agregar Carta</h2>
+      <div className="mb-6">
+        <h1>Agregar Cartas</h1>
+        <p className="backoffice-section-description">
+          Busca y agrega cartas al inventario desde Scryfall
+        </p>
+      </div>
 
       <form onSubmit={handleSearch} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

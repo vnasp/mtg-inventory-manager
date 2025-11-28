@@ -18,82 +18,74 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
   const [magicCardsExpanded, setMagicCardsExpanded] = useState(true);
 
   return (
-    <aside className="w-1/5 lg:shrink-0">
-      <Card className="space-y-2">
+    <aside className="w-64 shrink-0">
+      <nav className="space-y-1">
         {/* Usuarios */}
-        <Button
-          color="menu"
-          size="lg"
+        <button
           onClick={() => setActiveSection('users')}
-          className={
-            activeSection === 'users' ? 'bg-secondary text-white shadow-md' : ''
-          }
+          className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-all ${
+            activeSection === 'users'
+              ? 'bg-secondary text-white shadow-md'
+              : 'text-slate-700 hover:bg-slate-100'
+          }`}
         >
-          <HiUsers className="mr-2 h-5 w-5" />
+          <HiUsers className="h-5 w-5" />
           Usuarios
-        </Button>
+        </button>
 
         {/* Cartas Magic */}
         <div className="space-y-1">
-          <Button
-            color="menu"
-            size="lg"
+          <button
             onClick={() => setMagicCardsExpanded(!magicCardsExpanded)}
-            className="w-full justify-between"
+            className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-700 transition-all hover:bg-slate-100"
           >
-            <span className="flex items-center">
-              <HiSparkles className="mr-2 h-5 w-5" />
+            <span className="flex items-center gap-3">
+              <HiSparkles className="h-5 w-5" />
               Cartas Magic
             </span>
             {magicCardsExpanded ? (
-              <HiChevronDown className="h-5 w-5" />
+              <HiChevronDown className="h-4 w-4" />
             ) : (
-              <HiChevronRight className="h-5 w-5" />
+              <HiChevronRight className="h-4 w-4" />
             )}
-          </Button>
+          </button>
 
           {magicCardsExpanded && (
-            <div className="ml-4 space-y-1 border-l-2 border-stone-300 pl-2">
-              <Button
-                color="menu"
-                size="md"
+            <div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-4">
+              <button
                 onClick={() => setActiveSection('cards-add')}
-                className={
+                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'cards-add'
-                    ? 'bg-secondary text-white shadow-md'
-                    : ''
-                }
+                    ? 'bg-secondary text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
               >
                 Agregar
-              </Button>
-              <Button
-                color="menu"
-                size="md"
+              </button>
+              <button
                 onClick={() => setActiveSection('cards-inventory')}
-                className={
+                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'cards-inventory'
-                    ? 'bg-secondary text-white shadow-md'
-                    : ''
-                }
+                    ? 'bg-secondary text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
               >
                 Inventario
-              </Button>
-              <Button
-                color="menu"
-                size="md"
+              </button>
+              <button
                 onClick={() => setActiveSection('cards-settings')}
-                className={
+                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'cards-settings'
-                    ? 'bg-secondary text-white shadow-md'
-                    : ''
-                }
+                    ? 'bg-secondary text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
               >
                 Configuración
-              </Button>
+              </button>
             </div>
           )}
         </div>
-      </Card>
+      </nav>
     </aside>
   );
 }

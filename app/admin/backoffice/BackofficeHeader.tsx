@@ -8,11 +8,8 @@ import { HiExternalLink } from 'react-icons/hi';
 interface BackofficeHeaderProps {
   user: {
     email: string;
-    user_metadata?: {
-      first_name?: string;
-      last_name?: string;
-      full_name?: string;
-    };
+    first_name?: string | null;
+    last_name?: string | null;
   };
 }
 
@@ -40,53 +37,46 @@ function BackofficeHeader({ user }: BackofficeHeaderProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Obtener nombre y apellido del usuario
-  const firstName = user.user_metadata?.first_name || '';
-  const lastName = user.user_metadata?.last_name || '';
-  const fullName = user.user_metadata?.full_name || '';
-  const displayName =
-    fullName || `${firstName} ${lastName}`.trim() || 'Usuario';
-
   return (
-    <div className="bg-panelLight flex w-full flex-col gap-4 rounded-2xl p-6 shadow-2xl">
-      {/* Header principal */}
-      <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
-        {/* Logo y bienvenida */}
+    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between px-6 py-4">
+        {/* Logo y título */}
         <div className="flex items-center gap-4">
           <Image
             src="/assets/img/logo.png"
-            width={120}
-            height={72}
+            width={50}
+            height={50}
             alt="Logo"
-            className="block h-16 w-auto opacity-95 brightness-[0.85] contrast-[1.05]"
+            className="h-10 w-auto"
           />
           <div>
-            <h1 className="text-textDark text-2xl font-bold">
-              Bienvenido, {displayName}
-            </h1>
-            <p className="text-sm text-stone-600">{user.email}</p>
+            <h1 className="text-lg font-bold text-slate-900">Backoffice</h1>
+            <p className="text-xs text-slate-500">Panel de administración</p>
           </div>
         </div>
 
-        {/* Fecha/Hora y Acciones */}
-        <div className="flex flex-col items-start gap-3 lg:items-end">
-          <p className="text-sm font-medium text-stone-700">
-            {currentDateTime}
-          </p>
-          <div className="flex gap-2">
+        {/* Info usuario y acciones */}
+        <div className="flex items-center gap-4">
+          <div className="hidden text-right md:block">
+            <p className="text-sm font-semibold text-slate-900">
+              {`${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+                'Usuario'}
+            </p>
+            <p className="text-xs text-slate-500">{user.email}</p>
+          </div>
+          <div className="flex items-center gap-2">
             <Button
               color="light"
               size="sm"
               onClick={() => window.open('/', '_blank')}
             >
-              <HiExternalLink className="mr-2 h-4 w-4" />
-              Ver sitio
+              <HiExternalLink className="h-4 w-4" />
             </Button>
             <LogoutClient />
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 

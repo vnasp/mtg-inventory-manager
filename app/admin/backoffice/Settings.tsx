@@ -74,15 +74,20 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="bg-panelLight rounded-2xl p-6 text-center shadow-2xl">
-        <p className="text-textDark">Cargando configuración...</p>
+      <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
+        <p className="text-slate-700">Cargando configuración...</p>
       </div>
     );
   }
 
   return (
     <Card>
-      <h2>Configuración</h2>
+      <div className="mb-6">
+        <h1>Configuración</h1>
+        <p className="backoffice-section-description">
+          Ajustes generales del sistema
+        </p>
+      </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         <div>
@@ -120,9 +125,9 @@ export default function Settings() {
           )}
         </div>
 
-        <div className="bg-panelLight text-textDark rounded-lg border border-gray-200 p-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <h3>Información</h3>
-          <p className="text-sm">
+          <p className="text-sm text-slate-600">
             Este valor se utiliza para convertir los precios de USD a CLP en el
             catálogo público. Actualízalo regularmente para mantener los precios
             precisos.

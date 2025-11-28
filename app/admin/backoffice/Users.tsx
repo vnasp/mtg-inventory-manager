@@ -1,6 +1,5 @@
 'use client';
 import {
-  Card,
   Table,
   TableBody,
   TableCell,
@@ -113,65 +112,69 @@ export default function Users() {
 
   if (loading) {
     return (
-      <Card className="w-full">
-        <div className="flex justify-center py-8">
-          <Spinner />
-        </div>
-      </Card>
+      <div className="flex h-64 items-center justify-center">
+        <Spinner />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="w-full">
-        <h2 className="text-textDark mb-4 text-2xl font-bold">
-          Gestión de Usuarios
-        </h2>
-        <div className="rounded-lg bg-red-50 p-4 text-red-700">
+      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h1>Gestión de Usuarios</h1>
+          <p className="backoffice-section-description">
+            Administra los usuarios del sistema
+          </p>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
           Error: {error}
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full">
-      <h2 className="text-textDark mb-4 text-2xl font-bold">
-        Gestión de Usuarios
-      </h2>
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      {/* Header de sección */}
+      <div className="mb-6">
+        <h1>Gestión de Usuarios</h1>
+        <p className="backoffice-section-description">
+          Administra los usuarios del sistema
+        </p>
+      </div>
 
       {profiles.length === 0 ? (
-        <div className="text-stone-600">
-          <p>No hay usuarios registrados.</p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-12 text-center">
+          <p className="text-slate-600">No hay usuarios registrados.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table striped>
+        <div className="overflow-hidden rounded-lg border border-slate-200">
+          <Table>
             <TableHead>
-              <TableHeadCell>Email</TableHeadCell>
-              <TableHeadCell>Nombre Completo</TableHeadCell>
-              <TableHeadCell>Rol</TableHeadCell>
-              <TableHeadCell>Acciones</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Email</TableHeadCell>
+                <TableHeadCell>Nombre Completo</TableHeadCell>
+                <TableHeadCell>Rol</TableHeadCell>
+                <TableHeadCell>Acciones</TableHeadCell>
+              </TableRow>
             </TableHead>
-            <TableBody className="divide-y">
+            <TableBody className="divide-y divide-slate-200">
               {profiles.map((profile) => (
-                <TableRow
-                  key={profile.id}
-                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <TableCell className="font-medium text-gray-900 dark:text-white">
+                <TableRow key={profile.id} className="hover:bg-slate-50">
+                  <TableCell className="font-medium text-slate-900">
                     {profile.email}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-slate-700">
                     {`${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
                       '-'}
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                         profile.role === 'admin'
                           ? 'bg-purple-100 text-purple-800'
-                          : 'bg-gray-100 text-gray-800'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       {profile.role || 'user'}
@@ -179,11 +182,11 @@ export default function Users() {
                   </TableCell>
                   <TableCell>
                     <Button
-                      size="xs"
+                      size="sm"
                       color="light"
                       onClick={() => handleEdit(profile)}
                     >
-                      <HiPencil className="mr-1 h-4 w-4" />
+                      <HiPencil className="mr-2 h-4 w-4" />
                       Editar
                     </Button>
                   </TableCell>
@@ -194,8 +197,9 @@ export default function Users() {
         </div>
       )}
 
-      <div className="mt-4 text-sm text-gray-600">
-        Total de usuarios: {profiles.length}
+      <div className="mt-6 text-sm text-slate-600">
+        Total de usuarios:{' '}
+        <span className="font-semibold">{profiles.length}</span>
       </div>
 
       {/* Modal de edición */}
@@ -244,6 +248,6 @@ export default function Users() {
           </div>
         </div>
       </Modal>
-    </Card>
+    </div>
   );
 }

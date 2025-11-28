@@ -12,18 +12,22 @@ export default function BackofficeContent() {
   >('users');
 
   return (
-    <div className="flex w-full flex-col gap-6 lg:flex-row">
-      <BackofficeMenu
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-      />
+    <div className="flex w-full flex-1 overflow-hidden">
+      {/* Sidebar */}
+      <div className="border-r border-slate-200 bg-white p-6">
+        <BackofficeMenu
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+      </div>
 
-      <div className="flex-1">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-auto p-6">
         {activeSection === 'users' && <Users />}
         {activeSection === 'cards-add' && <CardSearch />}
         {activeSection === 'cards-inventory' && <CardInventory />}
         {activeSection === 'cards-settings' && <Settings />}
-      </div>
+      </main>
     </div>
   );
 }

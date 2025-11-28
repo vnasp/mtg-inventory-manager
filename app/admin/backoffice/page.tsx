@@ -14,17 +14,25 @@ export default async function Page() {
 
   if (!user) redirect('/admin');
 
+  // Obtener datos del perfil
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('id', user.id)
+    .single();
+
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-start gap-8 p-4 lg:p-8">
+    <div className="flex min-h-screen w-screen flex-col bg-slate-50">
       {/* Header */}
       <BackofficeHeader
         user={{
           email: user.email ?? 'Sin correo',
-          user_metadata: user.user_metadata,
+          first_name: profileData?.first_name,
+          last_name: profileData?.last_name,
         }}
       />
 
-      {/* Tabs Content */}
+      {/* Main Content */}
       <BackofficeContent />
     </div>
   );
