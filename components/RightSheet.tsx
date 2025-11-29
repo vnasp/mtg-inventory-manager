@@ -222,9 +222,7 @@ export default function RightSheet({
 
           {/* Resultados count - Desktop */}
           <div className="hidden text-sm text-gray-600 lg:block">
-            <span className="font-semibold text-purple-600">
-              {displayed.length}
-            </span>{' '}
+            <span className="font-semibold">{displayed.length}</span>{' '}
             {displayed.length === 1 ? 'carta' : 'cartas'}
           </div>
         </div>
@@ -373,9 +371,13 @@ export default function RightSheet({
 
                   {/* Botón de acción rápida (aparece al hover) */}
                   <div className="absolute right-3 bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                    <button className="w-full rounded-lg bg-purple-600 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-purple-700">
+                    <Button
+                      onClick={() => openModal(o)}
+                      className="w-full"
+                      size="sm"
+                    >
                       Ver detalles
-                    </button>
+                    </Button>
                   </div>
                 </article>
               );

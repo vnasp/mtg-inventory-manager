@@ -225,10 +225,7 @@ export default function LeftPanel({ onFilterChange, priceRange }: Props) {
 
         {/* Botones de acción */}
         <div className="space-y-2 border-t border-gray-200 pt-4">
-          <Button
-            onClick={handleFilter}
-            className="w-full bg-linear-to-r from-purple-600 to-pink-600 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-          >
+          <Button onClick={handleFilter} className="w-full" size="md">
             Aplicar Filtros
           </Button>
           <button

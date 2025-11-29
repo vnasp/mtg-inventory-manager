@@ -76,25 +76,26 @@ const themeVG = createTheme({
     inlineWrapper: 'flex items-center cursor-pointer',
   },
   button: {
-    base: 'relative flex items-center justify-center rounded-2xl text-center font-bold uppercase focus:outline-none focus:ring-0 cursor-pointer',
+    base: 'relative flex items-center justify-center rounded-lg text-center font-semibold focus:outline-none focus:ring-4 focus:ring-purple-300 cursor-pointer transition-all',
     disabled:
-      'pointer-events-auto opacity-50 cursor-not-allowed disabled:hover:bg-primary disabled:hover:text-primaryDark',
+      'pointer-events-auto opacity-50 cursor-not-allowed disabled:hover:bg-purple-600',
     color: {
       default:
-        'bg-primary text-primaryDark hover:bg-secondary hover:text-white ',
-      active: 'bg-secondary text-white hover:bg-secondary hover:text-white',
+        'bg-purple-600 text-white hover:bg-purple-700 shadow-lg hover:shadow-xl',
+      active: 'bg-purple-700 text-white hover:bg-purple-800',
       light:
-        'bg-cancel text-secondary border-cancel hover:bg-cancel hover:text-white',
-      link: 'bg-transparent text-secondary underline hover:text-primary hover:no-underline focus:ring-0',
-      menu: 'bg-transparent text-white hover:border hover:border-secondary',
+        'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 hover:text-gray-900',
+      link: 'bg-transparent text-purple-600 underline hover:text-purple-700 hover:no-underline focus:ring-0',
+      menu: 'bg-transparent text-white hover:border hover:border-purple-600',
     },
     outlineColor: {
       default:
-        'border border-primary text-primaryDark hover:border-primary hover:bg-primary hover:text-primaryDark focus:ring-none',
+        'border-2 border-purple-600 text-purple-600 hover:bg-purple-50 focus:ring-purple-300',
     },
     size: {
-      md: 'h-7.5 px-5 py-1 text-xs font-medium rounded-full',
-      lg: 'h-10 px-7 py-3 text-sm font-medium rounded-full',
+      sm: 'px-3 py-1.5 text-xs',
+      md: 'px-5 py-2.5 text-sm',
+      lg: 'px-7 py-3 text-base',
     },
   },
   modal: {

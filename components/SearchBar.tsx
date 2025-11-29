@@ -50,7 +50,7 @@ export default function SearchBar({
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         className="w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-sm text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-        aria-label="Buscar cartas"
+        aria-label="Buscar "
       />
 
       {loading && (

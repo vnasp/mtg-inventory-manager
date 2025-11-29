@@ -4,6 +4,7 @@
 @import 'tailwindcss';
 @plugin 'flowbite-react/plugin/tailwindcss';
 @source '../.flowbite-react/class-list.json';
+@import 'flowbite/dist/flowbite.css';
 
 @theme {
   --font-sans: 'Poppins', 'Inter', sans-serif;
@@ -13,6 +14,13 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
+
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 
   /* Paleta moderna y lúdica */
   --color-primary: #7c3aed; /* Violeta vibrante */
@@ -42,8 +50,9 @@ body {
   min-height: 100vh;
 }
 
-/* Flowbite CSS (import dist file) */
-@import 'flowbite/dist/flowbite.css';
+h1 {
+  @apply text-center text-2xl font-bold text-gray-800 lg:text-3xl;
+}
 
 /* Animaciones personalizadas */
 @keyframes float {

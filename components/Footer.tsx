@@ -15,9 +15,9 @@ export default function Footer() {
               className="mb-4 h-16 w-auto"
             />
             <p className="mb-3 text-sm text-gray-400">
-              Tienda de cartas coleccionables TCG en Chile. Compra y vende
-              cartas Magic: The Gathering (MTG), Pokémon TCG y más juegos de
-              mesa. Cartas sueltas, selladas y accesorios en Santiago.
+              Tienda de cartas coleccionables TCG en Chile. Cartas Magic: The
+              Gathering (MTG), Pokémon TCG y más juegos de mesa. Cartas sueltas,
+              selladas y accesorios en Santiago.
             </p>
             <a
               href="https://www.vudugaming.cl"
@@ -110,6 +110,7 @@ export default function Footer() {
                 </svg>
                 <div>
                   <p>Avenida Providencia 1108, Local 16</p>
+                  <p>Galeria Veneto</p>
                   <p>Providencia, Región Metropolitana</p>
                   <p>Chile</p>
                 </div>
@@ -161,13 +162,8 @@ export default function Footer() {
       <div className="border-t border-gray-700 bg-gray-900">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center justify-between gap-2 text-sm text-gray-500 md:flex-row">
-            <p>
-              © {new Date().getFullYear()} VuduGaming SpA. Todos los derechos
-              reservados.
-            </p>
-            <p className="text-xs">
-              Desarrollado con ❤️ para la comunidad de Magic: The Gathering
-            </p>
+            <p>© {new Date().getFullYear()} VuduGaming SpA</p>
+            <p className="text-xs">Todos los derechos reservados.</p>
           </div>
         </div>
       </div>
