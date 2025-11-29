@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import SearchBar from '@/components/SearchBar';
-import { Button, Pagination } from 'flowbite-react';
+import { Button, Card, Pagination, Select } from 'flowbite-react';
 import CardDetailModal from './CardDetailModal';
 import type { Filters } from './CatalogClient';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
@@ -29,6 +29,7 @@ export default function RightSheet({
   const [selectedOffer, setSelectedOffer] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   // Calcular items por página según el tamaño de pantalla
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -107,9 +108,126 @@ export default function RightSheet({
         });
       }
 
+      // Filtro de expansión/set
+      if (filters.set_name && filters.set_name !== 'all') {
+        filtered = filtered.filter((offer) => {
+          const card = offer.cards ?? offer.card ?? null;
+          return (
+            card?.set_name?.toLowerCase() === filters.set_name.toLowerCase()
+          );
+        });
+      }
+
+      // Filtro de condición
+      if (filters.condition && filters.condition !== 'all') {
+        filtered = filtered.filter((offer) => {
+          return (
+            offer.condition?.toLowerCase() === filters.condition.toLowerCase()
+          );
+        });
+      }
+
+      // Filtro de tipo de carta
+      if (filters.type_line && filters.type_line !== 'all') {
+        filtered = filtered.filter((offer) => {
+          const card = offer.cards ?? offer.card ?? null;
+          const typeLine = card?.type_line || '';
+          // Verificar si el tipo está incluido en type_line (ej: "Creature — Human" incluye "Creature")
+          return typeLine.includes(filters.type_line);
+        });
+      }
+
+      // Aplicar ordenamiento
+      if (sortBy) {
+        const minCardPrice = minCardPriceClp ?? 100;
+        filtered = [...filtered].sort((a, b) => {
+          const cardA = a.cards ?? a.card ?? null;
+          const cardB = b.cards ?? b.card ?? null;
+
+          switch (sortBy) {
+            case 'newest':
+              return (
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+              );
+            case 'oldest':
+              return (
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+              );
+            case 'price_asc': {
+              const priceA = fxRate
+                ? Math.max(
+                    Math.round(Number(a.price_usd ?? 0) * fxRate),
+                    minCardPrice
+                  )
+                : 0;
+              const priceB = fxRate
+                ? Math.max(
+                    Math.round(Number(b.price_usd ?? 0) * fxRate),
+                    minCardPrice
+                  )
+                : 0;
+              return priceA - priceB;
+            }
+            case 'price_desc': {
+              const priceA = fxRate
+                ? Math.max(
+                    Math.round(Number(a.price_usd ?? 0) * fxRate),
+                    minCardPrice
+                  )
+                : 0;
+              const priceB = fxRate
+                ? Math.max(
+                    Math.round(Number(b.price_usd ?? 0) * fxRate),
+                    minCardPrice
+                  )
+                : 0;
+              return priceB - priceA;
+            }
+            case 'name_asc':
+              return (cardA?.name || '').localeCompare(cardB?.name || '');
+            case 'name_desc':
+              return (cardB?.name || '').localeCompare(cardA?.name || '');
+            case 'rarity_asc': {
+              const rarityOrder: Record<string, number> = {
+                common: 1,
+                uncommon: 2,
+                rare: 3,
+                mythic: 4,
+                special: 5,
+                bonus: 6,
+              };
+              const rarityA =
+                rarityOrder[cardA?.rarity?.toLowerCase() || ''] || 0;
+              const rarityB =
+                rarityOrder[cardB?.rarity?.toLowerCase() || ''] || 0;
+              return rarityA - rarityB;
+            }
+            case 'rarity_desc': {
+              const rarityOrder: Record<string, number> = {
+                common: 1,
+                uncommon: 2,
+                rare: 3,
+                mythic: 4,
+                special: 5,
+                bonus: 6,
+              };
+              const rarityA =
+                rarityOrder[cardA?.rarity?.toLowerCase() || ''] || 0;
+              const rarityB =
+                rarityOrder[cardB?.rarity?.toLowerCase() || ''] || 0;
+              return rarityB - rarityA;
+            }
+            default:
+              return 0;
+          }
+        });
+      }
+
       return filtered;
     },
-    [filters, fxRate]
+    [filters, fxRate, minCardPriceClp, sortBy]
   );
 
   useEffect(() => {
@@ -185,16 +303,35 @@ export default function RightSheet({
 
   return (
     <div className="space-y-6">
-      {/* Barra de búsqueda y acciones */}
-      <div className="rounded-xl bg-white p-4 shadow-md lg:p-6">
+      <Card>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* SearchBar */}
           <div className="flex-1">
             <SearchBar
               onSearch={doSearch}
-              placeholder="Buscar cartas..."
+              placeholder="Buscar cartas por nombre..."
               loading={loading}
             />
+          </div>
+
+          {/* Ordenar por - Desktop */}
+          <div className="hidden lg:block">
+            <Select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+              }}
+              className="h-[42px] w-48 rounded-lg border-gray-300 bg-gray-50 px-4 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+            >
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguos</option>
+              <option value="price_asc">Precio: ↑</option>
+              <option value="price_desc">Precio: ↓</option>
+              <option value="name_asc">Nombre: A-Z</option>
+              <option value="name_desc">Nombre: Z-A</option>
+              <option value="rarity_asc">Rareza: ↑</option>
+              <option value="rarity_desc">Rareza: ↓</option>
+            </Select>
           </div>
 
           {/* Botón Filtrar - solo mobile */}
@@ -222,7 +359,7 @@ export default function RightSheet({
 
           {/* Resultados count - Desktop */}
           <div className="hidden text-sm text-gray-600 lg:block">
-            <span className="font-semibold">{displayed.length}</span>{' '}
+            <span className="font-semiboldel">{displayed.length}</span>{' '}
             {displayed.length === 1 ? 'carta' : 'cartas'}
           </div>
         </div>
@@ -234,7 +371,7 @@ export default function RightSheet({
           </span>{' '}
           {displayed.length === 1 ? 'carta encontrada' : 'cartas encontradas'}
         </div>
-      </div>
+      </Card>
 
       {/* Grid de cartas */}
       {displayed.length === 0 ? (

@@ -12,7 +12,7 @@ export default function Footer() {
               width={180}
               height={80}
               alt="VuduGaming Logo"
-              className="mb-4 h-16 w-auto"
+              className="mb-4 h-24 w-auto"
             />
             <p className="mb-3 text-sm text-gray-400">
               Tienda de cartas coleccionables TCG en Chile. Cartas Magic: The
@@ -38,7 +38,7 @@ export default function Footer() {
                   d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
-              <span>Ir a VuduGaming Juegos de Mesa</span>
+              <span>Ir a VuduGaming.cl</span>
             </a>
           </div>
 

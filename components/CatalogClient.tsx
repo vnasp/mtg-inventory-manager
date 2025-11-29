@@ -16,6 +16,10 @@ export type Filters = {
   priceRange: [number, number];
   rarity: string;
   colors: string[];
+  set_name: string;
+  condition: string;
+  type_line: string;
+  sortBy: string;
 };
 
 export default function CatalogClient({
@@ -49,12 +53,31 @@ export default function CatalogClient({
     };
   }, [offers, fxRate, minCardPriceClp]);
 
+  // Calcular expansiones disponibles
+  const availableSets = React.useMemo(() => {
+    if (!offers || offers.length === 0) return [];
+
+    const sets = new Set<string>();
+    offers.forEach((offer) => {
+      const card = offer.cards ?? offer.card ?? null;
+      if (card?.set_name) {
+        sets.add(card.set_name);
+      }
+    });
+
+    return Array.from(sets).sort();
+  }, [offers]);
+
   const [filters, setFilters] = useState<Filters>({
     language: 'all',
     foil: 'all',
     priceRange: [priceRange.min, priceRange.max],
     rarity: 'all',
     colors: [],
+    set_name: 'all',
+    condition: 'all',
+    type_line: 'all',
+    sortBy: 'newest',
   });
 
   const handleFilterChange = (newFilters: Filters) => {
@@ -72,6 +95,7 @@ export default function CatalogClient({
               onFilterChange={handleFilterChange}
               fxRate={fxRate}
               priceRange={priceRange}
+              availableSets={availableSets}
             />
           </div>
         </aside>
@@ -129,6 +153,7 @@ export default function CatalogClient({
               }}
               fxRate={fxRate}
               priceRange={priceRange}
+              availableSets={availableSets}
             />
           </div>
         </div>

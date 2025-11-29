@@ -3,8 +3,8 @@ import { createTheme } from 'flowbite-react';
 const themeVG = createTheme({
   card: {
     root: {
-      base: 'flex rounded-lg border border-gray-800 bg-gray-800 text-white shadow-md',
-      children: 'flex h-full flex-col justify-center gap-4 p-6',
+      base: 'flex rounded-xl bg-white shadow-md border-0',
+      children: 'flex h-full flex-col justify-center gap-4 p-4',
       horizontal: {
         off: 'flex-col',
         on: 'flex-col md:max-w-xl md:flex-row',
@@ -18,62 +18,6 @@ const themeVG = createTheme({
         on: 'h-96 w-full rounded-t-lg object-cover md:h-auto md:w-48 md:rounded-none md:rounded-l-lg',
       },
     },
-  },
-  alert: {
-    base: 'flex flex-col gap-2 p-4 text-xs',
-    borderAccent: 'border-t-4',
-    closeButton: {
-      base: '-m-1.5 ml-auto inline-flex h-8 w-8 rounded-lg p-1.5 focus:ring-2',
-      icon: 'h-5 w-5',
-      color: {
-        info: 'bg-cyan-100 text-cyan-500 hover:bg-cyan-200 focus:ring-cyan-400 ',
-        gray: 'bg-gray-100 text-gray-500 hover:bg-gray-200 focus:ring-gray-400 ',
-        failure: 'bg-red-100 text-red-500 hover:bg-red-200 focus:ring-red-400 ',
-        success:
-          'bg-green-100 text-green-500 hover:bg-green-200 focus:ring-green-400 ',
-        warning:
-          'bg-yellow-100 text-yellow-500 hover:bg-yellow-200 focus:ring-yellow-400 ',
-      },
-    },
-    color: {
-      info: 'border-cyan-500 bg-cyan-100 text-cyan-700 ',
-      gray: 'border-gray-500 bg-gray-100 text-gray-700',
-      failure: 'border-red-500 bg-red-100 text-red-700 ',
-      success: 'border-green-500 bg-green-100 text-green-700 ',
-      warning: 'border-yellow-500 bg-yellow-100 text-yellow-700 ',
-    },
-    icon: 'mr-3 inline h-5 w-5 shrink-0',
-    rounded: 'rounded-lg',
-    wrapper: 'flex items-center',
-  },
-  dropdown: {
-    arrowIcon: 'ml-2 h-4 w-4',
-    content: 'py-1 focus:outline-none',
-    floating: {
-      animation: 'transition-opacity',
-      arrow: {
-        base: 'absolute z-10 h-2 w-2 rotate-45',
-        style: {
-          light: 'bg-white',
-        },
-        placement: '-4px',
-      },
-      base: 'z-10 w-fit divide-y divide-gray-100 rounded shadow-none focus:outline-none',
-      content: 'py-1 text-sm text-primaryDark ',
-      divider: 'my-1 h-px bg-primaryLight',
-      header: 'block px-4 py-2 text-sm text-primaryDark',
-      hidden: 'invisible opacity-0',
-      item: {
-        container: '',
-        base: 'flex w-full cursor-pointer items-center justify-start px-4 py-2 text-sm text-primaryDark hover:bg-primaryLight focus:bg-primaryLight focus:outline-none',
-        icon: 'mr-2 h-4 w-4',
-      },
-      style: {
-        light: 'border border-primaryLight bg-white text-primaryDark',
-      },
-      target: 'w-fit',
-    },
-    inlineWrapper: 'flex items-center cursor-pointer',
   },
   button: {
     base: 'relative flex items-center justify-center rounded-lg text-center font-semibold focus:outline-none focus:ring-4 focus:ring-purple-300 cursor-pointer transition-all',
@@ -151,46 +95,6 @@ const themeVG = createTheme({
       popup: 'border-none',
     },
   },
-  radio: {
-    base: 'h-4 w-4 appearance-none rounded-full border border-primary bg-white bg-[length:1em_1em] bg-center bg-no-repeat checked:border-transparent checked:bg-current checked:bg-dot-icon focus:outline-none focus:ring-0',
-    color: {
-      default: 'text-secondary',
-    },
-  },
-  select: {
-    addon:
-      'inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-200 px-3 text-sm text-primaryLight',
-    base: 'flex',
-    field: {
-      base: 'relative w-full',
-      icon: {
-        base: 'pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2',
-        svg: 'h-5 w-5 text-primary',
-      },
-      select: {
-        base: 'block cursor-pointer w-full appearance-none bg-arrow-down-icon bg-[length:0.75em_0.75em] bg-[position:right_12px_center] bg-no-repeat pr-1',
-        colors: {
-          default:
-            'text-primaryDark border border-primary bg-white placeholder-primaryInactive focus:border-primary focus:ring-primary placeholder:tracking-widest',
-
-          gray: 'text-secondary  border-0 bg-white/90 focus:border-primary focus:ring-primary',
-          failure:
-            'border-red-500 text-red-700 focus:ring-red-500 focus:border-red-500',
-          placeholder:
-            'text-primaryLight tracking-extra-widest border-0 bg-white/90 placeholder-primaryLight placeholder:tracking-extra-widest focus:border-primary focus:ring-primary',
-        },
-        sizes: {
-          sm: 'px-6 py-1 text-xs',
-          md: 'ps-4 pe-12 py-2 text-sm',
-          lg: 'px-6 py-2 text-md',
-        },
-        withAddon: {
-          off: 'rounded-md',
-          on: 'rounded-r-lg',
-        },
-      },
-    },
-  },
   spinner: {
     color: {
       default: 'fill-primaryDark',
@@ -199,7 +103,7 @@ const themeVG = createTheme({
   textInput: {
     base: 'flex',
     addon:
-      'inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 ',
+      'inline-flex items-center rounded-l-lg border border-r-0 border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 ',
     field: {
       base: 'relative w-full',
       icon: {
