@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
 import { createClient as createServerSupabase } from '@/utils/supabase/server';
 import CatalogClient from '@/components/CatalogClient';
+import TopBar from '@/components/TopBar';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import '@/app/globals.css';
-import Image from 'next/image';
 
 export default async function Page() {
   const cookieStore = await cookies();
@@ -83,56 +85,20 @@ export default async function Page() {
   }
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Header moderno */}
-      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 shadow-sm backdrop-blur-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <Image
-                src="/assets/img/logo.png"
-                width={150}
-                height={60}
-                alt="VuduGaming Logo"
-                className="h-12 w-auto lg:h-14"
-                priority
-              />
-            </div>
-
-            {/* Nav - Desktop */}
-            <nav className="hidden items-center gap-6 md:flex">
-              <a
-                href="#"
-                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
-              >
-                Catálogo
-              </a>
-              <a
-                href="#"
-                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
-              >
-                Novedades
-              </a>
-              <a
-                href="#"
-                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
-              >
-                Contacto
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen w-full flex-col">
+      <TopBar />
+      <Header />
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto flex-1 px-4 py-8">
         <CatalogClient
           offers={offers}
           fxRate={fxRate}
           minCardPriceClp={minCardPriceClp}
         />
       </main>
+
+      <Footer />
     </div>
   );
 }

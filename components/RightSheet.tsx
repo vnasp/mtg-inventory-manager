@@ -6,6 +6,7 @@ import SearchBar from '@/components/SearchBar';
 import { Button, Pagination } from 'flowbite-react';
 import CardDetailModal from './CardDetailModal';
 import type { Filters } from './CatalogClient';
+import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
 type Props = {
   offers: any[];
@@ -359,12 +360,12 @@ export default function RightSheet({
                     <div className="mt-2 flex flex-wrap gap-1">
                       {o.condition && (
                         <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                          {o.condition}
+                          {mapConditionToSpanish(o.condition)}
                         </span>
                       )}
                       {o.foil && o.foil !== 'nonfoil' && (
                         <span className="rounded-md bg-linear-to-r from-yellow-400 to-pink-400 px-2 py-0.5 text-xs font-medium text-white">
-                          ✨ {o.foil}
+                          ✨ {mapFoilToSpanish(o.foil)}
                         </span>
                       )}
                     </div>

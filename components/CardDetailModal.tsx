@@ -9,6 +9,7 @@ import {
   ModalBody,
   ModalFooter,
 } from 'flowbite-react';
+import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
 type Props = {
   show: boolean;
@@ -156,19 +157,19 @@ export default function CardDetailModal({
                   <dd className="flex items-center gap-2">
                     {offer.foil && offer.foil !== 'nonfoil' ? (
                       <span className="rounded-full bg-linear-to-r from-yellow-400 to-pink-400 px-3 py-1 text-xs font-bold text-white">
-                        ✨ {offer.foil.toUpperCase()}
+                        ✨ {mapFoilToSpanish(offer.foil)}
                       </span>
                     ) : (
                       <span className="font-medium text-gray-900 uppercase">
-                        {offer.foil || 'N/A'}
+                        {mapFoilToSpanish(offer.foil)}
                       </span>
                     )}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
                   <dt className="font-semibold text-gray-700">Condición:</dt>
-                  <dd className="font-medium text-gray-900 uppercase">
-                    {offer.condition || 'N/A'}
+                  <dd className="font-medium text-gray-900">
+                    {mapConditionToSpanish(offer.condition)}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">

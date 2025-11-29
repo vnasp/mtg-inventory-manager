@@ -10,11 +10,7 @@ type Props = {
   priceRange: { min: number; max: number };
 };
 
-export default function LeftPanel({
-  onFilterChange,
-  fxRate = 1000,
-  priceRange,
-}: Props) {
+export default function LeftPanel({ onFilterChange, priceRange }: Props) {
   const [language, setLanguage] = useState('all');
   const [foil, setFoil] = useState('all');
   const [minPrice, setMinPrice] = useState(priceRange.min);
