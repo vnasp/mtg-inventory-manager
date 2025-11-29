@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from 'flowbite-react';
-import Image from 'next/image';
 import { useState } from 'react';
 import type { Filters } from './CatalogClient';
 
@@ -9,12 +8,13 @@ type Props = {
   onFilterChange: (filters: Filters) => void;
   fxRate?: number;
   priceRange: { min: number; max: number };
+  availableSets?: string[];
 };
 
 export default function LeftPanel({
   onFilterChange,
-  fxRate = 1000,
   priceRange,
+  availableSets,
 }: Props) {
   const [language, setLanguage] = useState('all');
   const [foil, setFoil] = useState('all');
@@ -22,6 +22,26 @@ export default function LeftPanel({
   const [maxPrice, setMaxPrice] = useState(priceRange.max);
   const [rarity, setRarity] = useState('all');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [setName, setSetName] = useState('all');
+  const [condition, setCondition] = useState('all');
+  const [typeLine, setTypeLine] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+
+  // Estados de acordeón - los más usados abiertos por defecto
+  const [accordionOpen, setAccordionOpen] = useState({
+    price: true,
+    colors: true,
+    rarity: false,
+    foil: false,
+    language: false,
+    condition: false,
+    set: false,
+    type: false,
+  });
+
+  const toggleAccordion = (key: keyof typeof accordionOpen) => {
+    setAccordionOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleFilter = () => {
     onFilterChange({
@@ -30,6 +50,10 @@ export default function LeftPanel({
       priceRange: [minPrice, maxPrice],
       rarity,
       colors: selectedColors,
+      set_name: setName,
+      condition,
+      type_line: typeLine,
+      sortBy: 'newest', // Valor por defecto, se maneja en RightSheet
     });
   };
 
@@ -46,166 +70,433 @@ export default function LeftPanel({
     setMaxPrice(priceRange.max);
     setRarity('all');
     setSelectedColors([]);
+    setSetName('all');
+    setCondition('all');
+    setTypeLine('all');
     onFilterChange({
       language: 'all',
       foil: 'all',
       priceRange: [priceRange.min, priceRange.max],
       rarity: 'all',
       colors: [],
+      set_name: 'all',
+      condition: 'all',
+      type_line: 'all',
+      sortBy: 'newest',
     });
   };
 
   return (
-    <aside className="flex w-full flex-col items-center justify-start gap-4 sm:gap-6 lg:mt-14 lg:gap-8">
-      {/* Logo - solo en desktop */}
-      <div className="hidden justify-center lg:flex">
-        <Image
-          src="/assets/img/logo.png"
-          width={200}
-          height={120}
-          alt="Logo"
-          className="block h-32 w-auto opacity-95 brightness-[0.85] contrast-[1.05] filter-[drop-shadow(-1px_-1px_1px_rgba(255,255,255,0.25))_drop-shadow(2px_2px_3px_rgba(0,0,0,0.8))]"
-        />
+    <aside className="space-y-6">
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Filtros</h2>
+        <p className="text-sm text-gray-500">Refina tu búsqueda</p>
       </div>
 
-      {/* Panel exterior (base de cuero más oscuro) */}
-      <div className="flex w-full flex-col items-center justify-center rounded-2xl bg-transparent p-4 shadow-[0_3px_6px_rgba(0,0,0,0.5)]">
-        {/* Panel interior (más claro, elevado) */}
-        <div className="bg-panelLight w-full rounded-xl border border-[#564630] p-4 text-stone-800 lg:p-6">
-          <label className="text-textDark mb-2 block text-xs lg:text-sm">
-            Idioma
-          </label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="mb-3 w-full rounded-md border border-[#a38b6b] bg-[#f7f3ea] px-2 py-1.5 text-xs shadow-inner lg:mb-4 lg:px-3 lg:py-2 lg:text-sm"
+      {/* Panel de filtros moderno con acordeón */}
+      <div className="space-y-3 rounded-2xl bg-white p-4 shadow-lg">
+        {/* 1. Rango de Precio - PRIORIDAD ALTA */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('price')}
+            className="flex w-full items-center justify-between text-left"
           >
-            <option value="all">Todos</option>
-            <option value="en">Inglés</option>
-            <option value="es">Español</option>
-          </select>
-
-          <label className="text-textDark mb-2 block text-xs lg:text-sm">
-            Acabado (Foil)
-          </label>
-          <select
-            value={foil}
-            onChange={(e) => setFoil(e.target.value)}
-            className="mb-3 w-full rounded-md border border-[#a38b6b] bg-[#f7f3ea] px-2 py-1.5 text-xs shadow-inner lg:mb-6 lg:px-3 lg:py-2 lg:text-sm"
-          >
-            <option value="all">Todos</option>
-            <option value="nonfoil">No Foil</option>
-            <option value="foil">Foil</option>
-            <option value="etched">Etched</option>
-          </select>
-
-          <label className="text-textDark mb-2 block text-xs lg:text-sm">
-            Rareza
-          </label>
-          <select
-            value={rarity}
-            onChange={(e) => setRarity(e.target.value)}
-            className="mb-3 w-full rounded-md border border-[#a38b6b] bg-[#f7f3ea] px-2 py-1.5 text-xs shadow-inner lg:mb-4 lg:px-3 lg:py-2 lg:text-sm"
-          >
-            <option value="all">Todas</option>
-            <option value="common">Común</option>
-            <option value="uncommon">Poco común</option>
-            <option value="rare">Rara</option>
-            <option value="mythic">Mítica</option>
-          </select>
-
-          <label className="text-textDark mb-2 block text-xs lg:text-sm">
-            Colores
-          </label>
-          <div className="mb-3 flex flex-wrap gap-1.5 lg:mb-4 lg:gap-2">
-            {[
-              { code: 'W', name: 'Blanco', color: '#F0E68C' },
-              { code: 'U', name: 'Azul', color: '#4682B4' },
-              { code: 'B', name: 'Negro', color: '#2F4F4F' },
-              { code: 'R', name: 'Rojo', color: '#CD5C5C' },
-              { code: 'G', name: 'Verde', color: '#3CB371' },
-              { code: 'C', name: 'Incoloro', color: '#A9A9A9' },
-            ].map(({ code, name, color }) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => toggleColor(code)}
-                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold transition-all lg:h-8 lg:w-8 ${
-                  selectedColors.includes(code)
-                    ? 'scale-110 border-orange-600 shadow-lg'
-                    : 'border-stone-400 opacity-60 hover:opacity-100'
-                }`}
-                style={{ backgroundColor: color }}
-                title={name}
-              >
-                {code}
-              </button>
-            ))}
-          </div>
-
-          <label className="text-textDark mb-2 block text-xs lg:text-sm">
-            Rango de Precio (CLP)
-          </label>
-          <div className="mb-3 space-y-2 lg:mb-4 lg:space-y-3">
-            <div className="flex items-center justify-between text-[10px] text-stone-600 lg:text-xs">
-              <span>Mín: ${minPrice.toLocaleString('es-CL')}</span>
-              <span>Máx: ${maxPrice.toLocaleString('es-CL')}</span>
-            </div>
-            <div className="relative h-2">
-              <div className="absolute h-2 w-full rounded-lg bg-[#e5dcc8]" />
-              <div
-                className="absolute h-2 rounded-lg bg-black"
-                style={{
-                  left: `${((minPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
-                  right: `${100 - ((maxPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
-                }}
-              />
-              <input
-                type="range"
-                min={priceRange.min}
-                max={priceRange.max}
-                step={Math.max(
-                  1000,
-                  Math.ceil((priceRange.max - priceRange.min) / 100)
-                )}
-                value={minPrice}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setMinPrice(Math.min(val, maxPrice - 1000));
-                }}
-                className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md"
-              />
-              <input
-                type="range"
-                min={priceRange.min}
-                max={priceRange.max}
-                step={Math.max(
-                  1000,
-                  Math.ceil((priceRange.max - priceRange.min) / 100)
-                )}
-                value={maxPrice}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setMaxPrice(Math.max(val, minPrice + 1000));
-                }}
-                className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex w-full flex-col items-center justify-center gap-4">
-            <Button
-              color="default"
-              onClick={handleFilter}
-              className="text-textLight bg-primary relative mt-2 w-full overflow-hidden rounded-lg px-3 py-1.5 text-xs font-bold uppercase shadow-[inset_0_2px_2px_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.3)] transition after:absolute after:inset-0 after:rounded-lg after:bg-linear-to-t after:from-orange-300/20 after:to-transparent after:content-[''] hover:brightness-105 active:translate-y-px active:shadow-inner lg:px-4 lg:py-2 lg:text-sm"
+            <span className="text-sm font-semibold text-gray-700">
+              Precio (CLP)
+            </span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.price ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              Filtrar
-            </Button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.price && (
+            <div className="mt-3 space-y-3">
+              <div className="flex items-center justify-between text-xs font-medium text-gray-600">
+                <span className="rounded-md bg-purple-50 px-2 py-1">
+                  ${minPrice.toLocaleString('es-CL')}
+                </span>
+                <span className="rounded-md bg-purple-50 px-2 py-1">
+                  ${maxPrice.toLocaleString('es-CL')}
+                </span>
+              </div>
+              <div className="relative h-2">
+                <div className="absolute h-2 w-full rounded-lg bg-gray-200" />
+                <div
+                  className="absolute h-2 rounded-lg bg-linear-to-r from-purple-500 to-pink-500"
+                  style={{
+                    left: `${((minPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
+                    right: `${100 - ((maxPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
+                  }}
+                />
+                <input
+                  type="range"
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  step={Math.max(
+                    1000,
+                    Math.ceil((priceRange.max - priceRange.min) / 100)
+                  )}
+                  value={minPrice}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setMinPrice(Math.min(val, maxPrice - 1000));
+                  }}
+                  className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-purple-600 [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600 [&::-webkit-slider-thumb]:shadow-lg"
+                />
+                <input
+                  type="range"
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  step={Math.max(
+                    1000,
+                    Math.ceil((priceRange.max - priceRange.min) / 100)
+                  )}
+                  value={maxPrice}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setMaxPrice(Math.max(val, minPrice + 1000));
+                  }}
+                  className="pointer-events-none absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-purple-600 [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600 [&::-webkit-slider-thumb]:shadow-lg"
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
-            <Button color="link" onClick={clearFilters}>
-              Limpiar filtros
-            </Button>
-          </div>
+        {/* 2. Colores - PRIORIDAD ALTA */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('colors')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">Colores</span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.colors ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.colors && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {[
+                {
+                  code: 'W',
+                  name: 'Blanco',
+                  color: 'bg-yellow-100 border-yellow-400 text-yellow-900',
+                },
+                {
+                  code: 'U',
+                  name: 'Azul',
+                  color: 'bg-blue-100 border-blue-400 text-blue-900',
+                },
+                {
+                  code: 'B',
+                  name: 'Negro',
+                  color: 'bg-gray-800 border-gray-600 text-white',
+                },
+                {
+                  code: 'R',
+                  name: 'Rojo',
+                  color: 'bg-red-100 border-red-400 text-red-900',
+                },
+                {
+                  code: 'G',
+                  name: 'Verde',
+                  color: 'bg-green-100 border-green-400 text-green-900',
+                },
+                {
+                  code: 'C',
+                  name: 'Incoloro',
+                  color: 'bg-gray-100 border-gray-400 text-gray-900',
+                },
+              ].map(({ code, name, color }) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => toggleColor(code)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${color} ${
+                    selectedColors.includes(code)
+                      ? 'scale-110 shadow-md ring-2 ring-purple-500 ring-offset-1'
+                      : 'opacity-60 hover:scale-105 hover:opacity-100'
+                  }`}
+                  title={name}
+                >
+                  {code}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 3. Rareza */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('rarity')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">Rareza</span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.rarity ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.rarity && (
+            <div className="mt-2">
+              <select
+                value={rarity}
+                onChange={(e) => setRarity(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todas</option>
+                <option value="common">Común</option>
+                <option value="uncommon">Poco común</option>
+                <option value="rare">Rara</option>
+                <option value="mythic">Mítica</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Condición */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('condition')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">
+              Condición
+            </span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.condition ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.condition && (
+            <div className="mt-2">
+              <select
+                value={condition}
+                onChange={(e) => setCondition(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todas</option>
+                <option value="mint">Mint (M)</option>
+                <option value="near_mint">Near Mint (NM)</option>
+                <option value="lightly_played">Lightly Played (LP)</option>
+                <option value="moderately_played">
+                  Moderately Played (MP)
+                </option>
+                <option value="heavily_played">Heavily Played (HP)</option>
+                <option value="damaged">Damaged (D)</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* 5. Acabado */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('foil')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">Acabado</span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.foil ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.foil && (
+            <div className="mt-2">
+              <select
+                value={foil}
+                onChange={(e) => setFoil(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todos</option>
+                <option value="nonfoil">No Foil</option>
+                <option value="foil">Foil</option>
+                <option value="etched">Etched</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* 6. Idioma */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('language')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">Idioma</span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.language ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.language && (
+            <div className="mt-2">
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todos</option>
+                <option value="en">Inglés</option>
+                <option value="es">Español</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* 7. Expansión/Set */}
+        <div className="border-b border-gray-200 pb-3">
+          <button
+            onClick={() => toggleAccordion('set')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">
+              Expansión
+            </span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.set ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.set && (
+            <div className="mt-2">
+              <select
+                value={setName}
+                onChange={(e) => setSetName(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todas</option>
+                {availableSets?.map((set) => (
+                  <option key={set} value={set}>
+                    {set}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* 8. Tipo de Carta */}
+        <div className="pb-3">
+          <button
+            onClick={() => toggleAccordion('type')}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-gray-700">
+              Tipo de Carta
+            </span>
+            <svg
+              className={`h-5 w-5 transform transition-transform ${accordionOpen.type ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {accordionOpen.type && (
+            <div className="mt-2">
+              <select
+                value={typeLine}
+                onChange={(e) => setTypeLine(e.target.value)}
+                className="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value="all">Todos</option>
+                <option value="Creature">Criatura</option>
+                <option value="Instant">Instantáneo</option>
+                <option value="Sorcery">Conjuro</option>
+                <option value="Enchantment">Encantamiento</option>
+                <option value="Artifact">Artefacto</option>
+                <option value="Planeswalker">Planeswalker</option>
+                <option value="Land">Tierra</option>
+                <option value="Battle">Batalla</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Botones de acción */}
+        <div className="mt-4 space-y-2 border-t border-gray-200 pt-4">
+          <Button onClick={handleFilter} className="w-full" size="md">
+            Aplicar Filtros
+          </Button>
+          <button
+            onClick={clearFilters}
+            className="w-full rounded-lg py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            Limpiar Filtros
+          </button>
         </div>
       </div>
     </aside>

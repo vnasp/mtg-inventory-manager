@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
 import { createClient as createServerSupabase } from '@/utils/supabase/server';
 import CatalogClient from '@/components/CatalogClient';
+import TopBar from '@/components/TopBar';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import '@/app/globals.css';
-import Image from 'next/image';
 
 export default async function Page() {
   const cookieStore = await cookies();
@@ -11,7 +13,7 @@ export default async function Page() {
   const offersRes = await supabase
     .from('card_offers')
     .select(
-      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_name, set_code, collector_number, image_url, sku, rarity, colors, color_identity)`
+      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_name, set_code, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
     )
     .eq('active', true)
     .gt('quantity', 0)
@@ -83,23 +85,20 @@ export default async function Page() {
   }
 
   return (
-    <div className="font-regular flex min-h-screen w-full flex-col items-center justify-center bg-black font-sans lg:flex-row lg:justify-start">
-      {/* Logo solo en mobile */}
-      <Image
-        src="/assets/img/logo.png"
-        width={200}
-        height={120}
-        alt="Logo"
-        className="my-4 block h-24 w-auto opacity-95 brightness-[0.85] contrast-[1.05] filter-[drop-shadow(-1px_-1px_1px_rgba(255,255,255,0.25))_drop-shadow(2px_2px_3px_rgba(0,0,0,0.8))] lg:hidden"
-      />
+    <div className="flex min-h-screen w-full flex-col">
+      <TopBar />
+      <Header />
 
-      <div className="relative min-h-screen w-screen max-w-[calc(100vh*1680/1024)] bg-[url('/assets/img/bg_mobile.webp')] bg-contain bg-top bg-no-repeat lg:h-screen lg:bg-[url('/assets/img/bg_desktop.webp')] lg:bg-center">
+      {/* Main content */}
+      <main className="container mx-auto flex-1 px-4 py-8">
         <CatalogClient
           offers={offers}
           fxRate={fxRate}
           minCardPriceClp={minCardPriceClp}
         />
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }
