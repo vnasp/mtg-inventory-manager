@@ -63,41 +63,44 @@ export default function CatalogClient({
 
   return (
     <>
-      {/* Desktop Layout: Horizontal */}
-      <div className="hidden h-full w-full items-center lg:grid lg:grid-cols-[25%_8%_62%]">
-        <div className="h-full w-full overflow-y-auto lg:ms-8">
-          <LeftPanel
-            onFilterChange={handleFilterChange}
-            fxRate={fxRate}
-            priceRange={priceRange}
-          />
-        </div>
+      {/* Layout moderno e-commerce */}
+      <div className="flex flex-col gap-8 lg:flex-row">
+        {/* Sidebar de filtros - Desktop */}
+        <aside className="hidden lg:block lg:w-72 lg:shrink-0">
+          <div className="sticky top-24">
+            <LeftPanel
+              onFilterChange={handleFilterChange}
+              fxRate={fxRate}
+              priceRange={priceRange}
+            />
+          </div>
+        </aside>
 
-        <div className="h-full">{''}</div>
-
-        <div className="mt-[5%] overflow-y-auto lg:ms-8 lg:mt-[10%] lg:h-full">
+        {/* Contenido principal */}
+        <div className="flex-1">
           <RightSheet
             offers={offers}
             fxRate={fxRate}
             minCardPriceClp={minCardPriceClp}
             filters={filters}
+            onOpenFilters={() => setShowFilters(true)}
           />
         </div>
       </div>
 
-      {/* Mobile/Tablet Layout: Vertical */}
-      <div className="flex h-full w-full flex-col overflow-y-auto lg:hidden">
-        {/* Offcanvas - Panel de filtros */}
-        <div
-          className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm transform bg-black/95 backdrop-blur-sm transition-transform duration-300 ease-in-out ${
-            showFilters ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <div className="flex h-full flex-col overflow-y-auto p-4">
-            {/* Botón cerrar */}
+      {/* Mobile - Offcanvas Filtros */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm transform bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+          showFilters ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex h-full flex-col overflow-y-auto">
+          {/* Header del panel */}
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4">
+            <h2 className="text-lg font-bold text-gray-900">Filtros</h2>
             <button
               onClick={() => setShowFilters(false)}
-              className="text-textLight mb-4 self-end rounded-lg p-2 hover:bg-white/10"
+              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
               aria-label="Cerrar filtros"
             >
               <svg
@@ -115,7 +118,10 @@ export default function CatalogClient({
                 />
               </svg>
             </button>
+          </div>
 
+          {/* Contenido del panel */}
+          <div className="p-4">
             <LeftPanel
               onFilterChange={(newFilters) => {
                 handleFilterChange(newFilters);
@@ -126,26 +132,15 @@ export default function CatalogClient({
             />
           </div>
         </div>
-
-        {/* Overlay */}
-        {showFilters && (
-          <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowFilters(false)}
-          />
-        )}
-
-        {/* Panel de cartas */}
-        <div className="mt-[5%] w-full px-4 py-4 lg:mt-[10%]">
-          <RightSheet
-            offers={offers}
-            fxRate={fxRate}
-            minCardPriceClp={minCardPriceClp}
-            filters={filters}
-            onOpenFilters={() => setShowFilters(true)}
-          />
-        </div>
       </div>
+
+      {/* Overlay */}
+      {showFilters && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          onClick={() => setShowFilters(false)}
+        />
+      )}
     </>
   );
 }

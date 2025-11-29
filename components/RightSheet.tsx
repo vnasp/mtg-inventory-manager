@@ -45,7 +45,7 @@ export default function RightSheet({
         setItemsPerPage(8);
       } else {
         // LG+: 5 columnas × 3 filas = 15 items
-        setItemsPerPage(15);
+        setItemsPerPage(10);
       }
     };
 
@@ -183,107 +183,222 @@ export default function RightSheet({
   };
 
   return (
-    <main className="space-y-8 p-1">
-      <section>
-        <div className="bg-panelLight flex w-full flex-col items-center justify-center gap-3 rounded-xl p-3 shadow-[0_3px_6px_rgba(0,0,0,0.5)] lg:mt-0">
+    <div className="space-y-6">
+      {/* Barra de búsqueda y acciones */}
+      <div className="rounded-xl bg-white p-4 shadow-md lg:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* SearchBar */}
-          <div className="w-full">
+          <div className="flex-1">
             <SearchBar
               onSearch={doSearch}
               placeholder="Buscar cartas..."
               loading={loading}
             />
           </div>
+
+          {/* Botón Filtrar - solo mobile */}
+          {onOpenFilters && (
+            <Button
+              onClick={onOpenFilters}
+              className="flex items-center justify-center gap-2 bg-linear-to-r from-purple-600 to-pink-600 font-semibold text-white shadow-lg transition-all hover:scale-105 lg:hidden"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              Filtros
+            </Button>
+          )}
+
+          {/* Resultados count - Desktop */}
+          <div className="hidden text-sm text-gray-600 lg:block">
+            <span className="font-semibold text-purple-600">
+              {displayed.length}
+            </span>{' '}
+            {displayed.length === 1 ? 'carta' : 'cartas'}
+          </div>
         </div>
-        {/* Botón Filtrar - solo mobile */}
-        {onOpenFilters && (
-          <Button
-            onClick={onOpenFilters}
-            className="bg-primary text-textLight mt-6 w-full rounded-lg px-4 py-2.5 text-sm font-bold uppercase shadow-md transition-all hover:brightness-110 active:scale-95 lg:hidden"
+
+        {/* Resultados count - Mobile */}
+        <div className="mt-3 text-center text-sm text-gray-600 lg:hidden">
+          <span className="font-semibold text-purple-600">
+            {displayed.length}
+          </span>{' '}
+          {displayed.length === 1 ? 'carta encontrada' : 'cartas encontradas'}
+        </div>
+      </div>
+
+      {/* Grid de cartas */}
+      {displayed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl bg-white p-12 text-center shadow-md">
+          <svg
+            className="mb-4 h-16 w-16 text-gray-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            Filtrar
-          </Button>
-        )}
-      </section>
-      <section>
-        {displayed.length === 0 ? (
-          <p className="text-white">No hay cartas disponibles.</p>
-        ) : (
-          <>
-            <div className="mt-[30%] grid gap-2 md:grid-cols-5 lg:mt-0 lg:grid-cols-5 lg:gap-3">
-              {currentItems.map((o) => {
-                const card = o.cards ?? o.card ?? null;
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 className="mb-2 text-lg font-semibold text-gray-700">
+            No se encontraron cartas
+          </h3>
+          <p className="text-sm text-gray-500">
+            Intenta ajustar los filtros o realizar una nueva búsqueda
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Grid de productos */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {currentItems.map((o) => {
+              const card = o.cards ?? o.card ?? null;
 
-                // Precio en USD desde la oferta (fallback a 0 si no existe)
-                const priceUsd = Number(o.price_usd ?? 0);
-                // Si fxRate está presente, convertir; si no, mostrar USD sin conversión
-                const priceClp = fxRate
-                  ? Math.round(priceUsd * fxRate)
-                  : priceUsd;
-                // Aplicar precio mínimo si hay fxRate
-                const minCardPrice = minCardPriceClp ?? 100;
-                const converted = fxRate
-                  ? Math.max(priceClp, minCardPrice)
-                  : priceUsd;
+              // Precio en USD desde la oferta (fallback a 0 si no existe)
+              const priceUsd = Number(o.price_usd ?? 0);
+              // Si fxRate está presente, convertir; si no, mostrar USD sin conversión
+              const priceClp = fxRate
+                ? Math.round(priceUsd * fxRate)
+                : priceUsd;
+              // Aplicar precio mínimo si hay fxRate
+              const minCardPrice = minCardPriceClp ?? 100;
+              const converted = fxRate
+                ? Math.max(priceClp, minCardPrice)
+                : priceUsd;
 
-                // Formatear: si hay fxRate asumimos CLP, si no mostramos USD
-                const formattedPrice = fxRate
-                  ? new Intl.NumberFormat('es-CL', {
-                      style: 'currency',
-                      currency: 'CLP',
-                      maximumFractionDigits: 0,
-                    }).format(converted)
-                  : new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                    }).format(converted);
+              // Formatear: si hay fxRate asumimos CLP, si no mostramos USD
+              const formattedPrice = fxRate
+                ? new Intl.NumberFormat('es-CL', {
+                    style: 'currency',
+                    currency: 'CLP',
+                    maximumFractionDigits: 0,
+                  }).format(converted)
+                : new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                  }).format(converted);
 
-                return (
-                  <article
-                    key={o.id}
-                    onClick={() => openModal(o)}
-                    className="relative cursor-pointer rounded-xl bg-transparent px-0.5 py-2 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.4),0_2px_2px_rgba(0,0,0,0.5)] transition-transform duration-200 hover:scale-[1.02]"
-                  >
-                    {/* Badge de precio en la esquina superior derecha */}
-                    <div className="bg-secondary absolute top-1 right-1 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm lg:top-2 lg:right-2 lg:px-2 lg:text-xs">
-                      {formattedPrice}
-                    </div>
-
+              return (
+                <article
+                  key={o.id}
+                  onClick={() => openModal(o)}
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+                >
+                  {/* Imagen de la carta */}
+                  <div className="relative aspect-5/7 overflow-hidden bg-linear-to-br from-purple-100 to-pink-100">
                     {card?.image_url ? (
                       <Image
                         src={card.image_url}
                         alt={card.name}
-                        width={100}
-                        height={140}
-                        className="mx-auto w-full rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                        width={300}
+                        height={420}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     ) : (
-                      <div className="mx-auto aspect-5/7 w-full rounded-lg bg-stone-200" />
+                      <div className="flex h-full w-full items-center justify-center text-gray-400">
+                        <svg
+                          className="h-16 w-16"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
                     )}
-                  </article>
-                );
-              })}
+
+                    {/* Overlay con efecto hover */}
+                    <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10" />
+                  </div>
+
+                  {/* Info de la carta */}
+                  <div className="p-3">
+                    {/* Nombre de la carta */}
+                    <h3 className="mb-1 line-clamp-2 text-sm font-semibold text-gray-900 lg:text-base">
+                      {card?.name || 'Sin nombre'}
+                    </h3>
+
+                    {/* Set */}
+                    {card?.set_name && (
+                      <p className="mb-2 line-clamp-1 text-xs text-gray-500">
+                        {card.set_name}
+                      </p>
+                    )}
+
+                    {/* Precio */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-purple-600 lg:text-xl">
+                        {formattedPrice}
+                      </span>
+
+                      {/* Badge de stock */}
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        Stock: {o.quantity}
+                      </span>
+                    </div>
+
+                    {/* Badge de condición y foil */}
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {o.condition && (
+                        <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                          {o.condition}
+                        </span>
+                      )}
+                      {o.foil && o.foil !== 'nonfoil' && (
+                        <span className="rounded-md bg-linear-to-r from-yellow-400 to-pink-400 px-2 py-0.5 text-xs font-medium text-white">
+                          ✨ {o.foil}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Botón de acción rápida (aparece al hover) */}
+                  <div className="absolute right-3 bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <button className="w-full rounded-lg bg-purple-600 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-purple-700">
+                      Ver detalles
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+                showIcons
+                previousLabel="Anterior"
+                nextLabel="Siguiente"
+                className="rounded-lg bg-white px-4 py-2 shadow-md"
+              />
             </div>
+          )}
+        </>
+      )}
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex justify-center lg:mt-8">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={onPageChange}
-                  showIcons
-                  previousLabel="Anterior"
-                  nextLabel="Siguiente"
-                  className="text-xs lg:text-sm"
-                />
-              </div>
-            )}
-          </>
-        )}
-      </section>
-
-      {/* Modal de detalles de la carta */}
+      {/* Modal de detalles */}
       <CardDetailModal
         show={showModal}
         onClose={closeModal}
@@ -291,6 +406,6 @@ export default function RightSheet({
         fxRate={fxRate}
         minCardPriceClp={minCardPriceClp}
       />
-    </main>
+    </div>
   );
 }

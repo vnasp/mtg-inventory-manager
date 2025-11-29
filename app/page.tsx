@@ -83,23 +83,56 @@ export default async function Page() {
   }
 
   return (
-    <div className="font-regular flex min-h-screen w-full flex-col items-center justify-center bg-black font-sans lg:flex-row lg:justify-start">
-      {/* Logo solo en mobile */}
-      <Image
-        src="/assets/img/logo.png"
-        width={200}
-        height={120}
-        alt="Logo"
-        className="my-4 block h-24 w-auto opacity-95 brightness-[0.85] contrast-[1.05] filter-[drop-shadow(-1px_-1px_1px_rgba(255,255,255,0.25))_drop-shadow(2px_2px_3px_rgba(0,0,0,0.8))] lg:hidden"
-      />
+    <div className="min-h-screen w-full">
+      {/* Header moderno */}
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 shadow-sm backdrop-blur-lg">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <Image
+                src="/assets/img/logo.png"
+                width={150}
+                height={60}
+                alt="VuduGaming Logo"
+                className="h-12 w-auto lg:h-14"
+                priority
+              />
+            </div>
 
-      <div className="relative min-h-screen w-screen max-w-[calc(100vh*1680/1024)] bg-[url('/assets/img/bg_mobile.webp')] bg-contain bg-top bg-no-repeat lg:h-screen lg:bg-[url('/assets/img/bg_desktop.webp')] lg:bg-center">
+            {/* Nav - Desktop */}
+            <nav className="hidden items-center gap-6 md:flex">
+              <a
+                href="#"
+                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
+              >
+                Catálogo
+              </a>
+              <a
+                href="#"
+                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
+              >
+                Novedades
+              </a>
+              <a
+                href="#"
+                className="font-medium text-gray-700 transition-colors hover:text-purple-600"
+              >
+                Contacto
+              </a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="container mx-auto px-4 py-8">
         <CatalogClient
           offers={offers}
           fxRate={fxRate}
           minCardPriceClp={minCardPriceClp}
         />
-      </div>
+      </main>
     </div>
   );
 }
