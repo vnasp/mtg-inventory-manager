@@ -200,7 +200,7 @@ export default function CardSearch() {
       // Mostrar resumen
       if (errors.length === 0) {
         setToast({
-          message: `✅ ${successCount} cartas importadas correctamente`,
+          message: `${successCount} cartas importadas correctamente`,
           type: 'success',
         });
       } else {
