@@ -294,7 +294,7 @@ export default function CardSearch() {
 
   return (
     <Card>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Agregar Cartas</h1>
         <p className="backoffice-section-description">
           Busca y agrega cartas al inventario.

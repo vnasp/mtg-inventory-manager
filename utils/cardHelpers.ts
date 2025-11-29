@@ -7,16 +7,24 @@ export function mapConditionToSpanish(
   if (!condition) return 'N/A';
 
   const conditionMap: Record<string, string> = {
-    NM: 'Near Mint (Casi Perfecta)',
-    LP: 'Ligeramente Jugada',
-    MP: 'Moderadamente Jugada',
-    HP: 'Muy Jugada',
-    DMG: 'Dañada',
-    'Near Mint': 'Casi Perfecta',
-    'Lightly Played': 'Ligeramente Jugada',
-    'Moderately Played': 'Moderadamente Jugada',
-    'Heavily Played': 'Muy Jugada',
-    Damaged: 'Dañada',
+    // Valores con guión bajo (de la DB)
+    mint: 'Mint (M)',
+    near_mint: 'Near Mint (NM)',
+    lightly_played: 'Lightly Played (LP)',
+    moderately_played: 'Moderately Played (MP)',
+    heavily_played: 'Heavily Played (HP)',
+    damaged: 'Damaged (D)',
+    // Valores con espacios y abreviaciones
+    NM: 'Near Mint (NM)',
+    LP: 'Lightly Played (LP)',
+    MP: 'Moderately Played (MP)',
+    HP: 'Heavily Played (HP)',
+    DMG: 'Damaged (D)',
+    'Near Mint': 'Near Mint (NM)',
+    'Lightly Played': 'Lightly Played (LP)',
+    'Moderately Played': 'Moderately Played (MP)',
+    'Heavily Played': 'Heavily Played (HP)',
+    Damaged: 'Damaged (D)',
   };
 
   return conditionMap[condition] || condition;
@@ -31,7 +39,7 @@ export function mapFoilToSpanish(foil: string | null | undefined): string {
   const foilMap: Record<string, string> = {
     nonfoil: 'Normal',
     foil: 'Foil',
-    etched: 'Grabado',
+    etched: 'Etched',
   };
 
   return foilMap[foil.toLowerCase()] || foil;

@@ -11,6 +11,7 @@ import {
   TextInput,
   Pagination,
   Select,
+  Card,
 } from 'flowbite-react';
 import Image from 'next/image';
 import ToastNotification from '@/components/ToastNotification';
@@ -168,8 +169,8 @@ export default function CardInventory() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
+    <Card>
+      <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Inventario de Cartas</h1>
         <p className="backoffice-section-description mb-4">
           Listado completo de todas las cartas en stock ({filteredOffers.length}{' '}
@@ -324,6 +325,6 @@ export default function CardInventory() {
           />
         )}
       </div>
-    </div>
+    </Card>
   );
 }
