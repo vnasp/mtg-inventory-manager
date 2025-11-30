@@ -94,7 +94,7 @@ export default function LoginClient() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-primary w-full"
+              className="bg-bo-primary w-full"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>

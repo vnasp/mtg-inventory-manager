@@ -22,14 +22,7 @@ export default async function Page() {
   const settingsRes = await supabase
     .from('settings')
     .select('value')
-    .eq('key', 'fx_usdclp')
-    .limit(1)
-    .maybeSingle();
-
-  const minPriceRes = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'min_card_price_clp')
+    .eq('key', 'mtg')
     .limit(1)
     .maybeSingle();
 
@@ -44,44 +37,39 @@ export default async function Page() {
 
   const data = offersRes.data as any[] | null;
   const setting = (settingsRes as any)?.data;
-  const minPriceSetting = (minPriceRes as any)?.data;
 
   const offers = (data ?? []) as any[];
 
-  // Resolve fx rate from settings (value may be JSON or object)
+  // Resolve fx rate and min price from MTG settings
   let fxRate: number;
+  let minCardPriceClp = 499; // default
+
   try {
     if (setting && setting.value != null) {
-      if (typeof setting.value === 'object') {
-        fxRate = Number(setting.value.rate);
+      const settingValue =
+        typeof setting.value === 'object'
+          ? setting.value
+          : JSON.parse(String(setting.value));
+
+      // Get fx_usdclp.rate
+      if (settingValue.fx_usdclp?.rate) {
+        fxRate = Number(settingValue.fx_usdclp.rate);
       } else {
-        const parsed = JSON.parse(String(setting.value));
-        fxRate = Number(parsed.rate);
+        throw new Error('FX rate not configured in MTG settings');
+      }
+
+      // Get min_card_price_clp.amount
+      if (settingValue.min_card_price_clp?.amount !== undefined) {
+        minCardPriceClp = Number(settingValue.min_card_price_clp.amount);
       }
     } else {
-      throw new Error('FX rate not configured in settings');
+      throw new Error('MTG settings not configured');
     }
   } catch (e) {
-    console.error('Error loading FX rate from settings:', e);
+    console.error('Error loading MTG settings:', e);
     throw new Error(
-      'FX rate not configured. Please set fx_usdclp in settings.'
+      'MTG settings not configured. Please configure MTG settings in the backoffice.'
     );
-  }
-
-  // Resolve min card price from settings
-  let minCardPriceClp = 100; // default
-  try {
-    if (minPriceSetting && minPriceSetting.value != null) {
-      if (typeof minPriceSetting.value === 'object') {
-        minCardPriceClp = Number(minPriceSetting.value.amount);
-      } else {
-        const parsed = JSON.parse(String(minPriceSetting.value));
-        minCardPriceClp = Number(parsed.amount);
-      }
-    }
-  } catch (e) {
-    console.error('Error loading min card price from settings:', e);
-    // Use default value
   }
 
   return (

@@ -11,19 +11,19 @@ const themeBackoffice = createTheme({
     base: 'group relative flex items-center justify-center rounded-lg text-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
     disabled: 'cursor-not-allowed opacity-50',
     color: {
-      blue: 'bg-[#9c35bf] text-white shadow-sm hover:bg-[#8b2fad] hover:shadow-md focus:ring-[#9c35bf]',
+      blue: 'bg-bo-primary text-white shadow-sm hover:bg-bo-primary-hover hover:shadow-md focus:ring-bo-primary',
       light:
-        'border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 focus:ring-[#9c35bf]',
+        'border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 focus:ring-bo-primary',
       gray: 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 focus:ring-slate-400',
       failure:
         'bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-md focus:ring-red-500',
       success:
         'bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 hover:shadow-md focus:ring-emerald-500',
       warning:
-        'bg-[#e79640] text-white shadow-sm hover:bg-[#d17f2a] hover:shadow-md focus:ring-[#e79640]',
+        'bg-bo-secondary text-white shadow-sm hover:bg-bo-secondary-dark hover:shadow-md focus:ring-bo-secondary',
       purple:
-        'bg-[#9c35bf] text-white shadow-sm hover:bg-[#8b2fad] hover:shadow-md focus:ring-[#9c35bf]',
-      menu: 'w-full justify-start rounded-lg bg-transparent text-slate-700 font-medium hover:bg-slate-100 transition-all duration-200 focus:ring-[#9c35bf]',
+        'bg-bo-primary text-white shadow-sm hover:bg-bo-primary-hover hover:shadow-md focus:ring-bo-primary',
+      menu: 'w-full justify-start rounded-lg bg-transparent text-slate-700 font-medium hover:bg-slate-100 transition-all duration-200 focus:ring-bo-primary',
     },
     size: {
       xs: 'px-2.5 py-1.5 text-xs',
@@ -107,12 +107,12 @@ const themeBackoffice = createTheme({
           lg: 'p-3.5 text-base',
         },
         colors: {
-          gray: 'border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#9c35bf] focus:ring-2 focus:ring-[#9c35bf]/20',
-          info: 'border-[#9c35bf] bg-purple-50 text-purple-900 placeholder-purple-600 focus:border-[#9c35bf] focus:ring-2 focus:ring-[#9c35bf]/20',
+          gray: 'border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-bo-primary focus:ring-2 focus:ring-bo-primary/20',
+          info: 'border-bo-primary bg-bo-primary-light text-purple-900 placeholder-purple-600 focus:border-bo-primary focus:ring-2 focus:ring-bo-primary/20',
           failure:
             'border-red-400 bg-red-50 text-red-900 placeholder-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20',
           warning:
-            'border-[#e79640] bg-orange-50 text-orange-900 placeholder-orange-600 focus:border-[#e79640] focus:ring-2 focus:ring-[#e79640]/20',
+            'border-bo-secondary bg-bo-secondary-light text-orange-900 placeholder-orange-600 focus:border-bo-secondary focus:ring-2 focus:ring-bo-secondary/20',
           success:
             'border-emerald-400 bg-emerald-50 text-emerald-900 placeholder-emerald-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20',
         },
@@ -136,9 +136,9 @@ const themeBackoffice = createTheme({
     color: {
       failure: 'fill-red-600',
       gray: 'fill-slate-600',
-      info: 'fill-[#9c35bf]',
+      info: 'fill-bo-primary',
       success: 'fill-emerald-600',
-      warning: 'fill-[#e79640]',
+      warning: 'fill-bo-secondary',
     },
     size: {
       xs: 'h-3 w-3',
@@ -146,17 +146,6 @@ const themeBackoffice = createTheme({
       md: 'h-6 w-6',
       lg: 'h-8 w-8',
       xl: 'h-10 w-10',
-    },
-  },
-  alert: {
-    base: 'flex flex-col gap-2 rounded-lg p-4 text-sm shadow-sm',
-    borderAccent: 'border-l-4',
-    color: {
-      info: 'border-[#9c35bf] bg-purple-50 text-purple-800',
-      gray: 'border-slate-400 bg-slate-50 text-slate-800',
-      failure: 'border-red-500 bg-red-50 text-red-800',
-      success: 'border-emerald-500 bg-emerald-50 text-emerald-800',
-      warning: 'border-[#e79640] bg-orange-50 text-orange-800',
     },
   },
 });
