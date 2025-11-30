@@ -7,51 +7,36 @@
 @import 'flowbite/dist/flowbite.css';
 
 @theme {
-  --font-sans: 'Poppins', 'Inter', sans-serif;
-
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-
-  /* Breakpoints */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-
-  /* Paleta moderna y lúdica */
-  --color-primary: #7c3aed; /* Violeta vibrante */
-  --color-primary-dark: #6d28d9;
-  --color-secondary: #f59e0b; /* Amarillo dorado */
-  --color-accent: #ec4899; /* Rosa fucsia */
-  --color-success: #10b981; /* Verde esmeralda */
-
-  /* Fondos y superficies */
-  --color-bg-main: #fafafa;
-  --color-bg-secondary: #ffffff;
-  --color-bg-gradient-start: #fdf4ff; /* Rosa muy claro */
-  --color-bg-gradient-end: #f0f9ff; /* Azul muy claro */
-
-  /* Textos */
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-light: #9ca3af;
+  --font-family-sans: 'Poppins', 'Inter', sans-serif;
 }
 
 :root {
-  @apply font-sans;
+  font-family: var(--font-family-sans);
 }
 
 body {
-  @apply font-regular bg-linear-to-br from-purple-50 via-white to-blue-50 font-sans text-gray-900;
+  font-family: var(--font-family-sans);
+  background: linear-gradient(
+    to bottom right,
+    rgb(250 245 255),
+    rgb(255 255 255),
+    rgb(239 246 255)
+  );
+  color: rgb(17 24 39);
   min-height: 100vh;
 }
 
 h1 {
-  @apply text-center text-2xl font-bold text-gray-800 lg:text-3xl;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(31 41 55);
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.875rem;
+  }
 }
 
 /* Animaciones personalizadas */

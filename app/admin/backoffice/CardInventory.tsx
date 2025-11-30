@@ -1,19 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  TextInput,
-  Pagination,
-  Select,
-} from 'flowbite-react';
-import Image from 'next/image';
+import { Button, Card } from 'flowbite-react';
 import ToastNotification from '@/components/ToastNotification';
+import InventoryFilters from './InventoryFilters';
+import InventoryTable from './InventoryTable';
+import { TextInput } from 'flowbite-react';
 
 type CardOffer = {
   id: string;
@@ -23,11 +14,13 @@ type CardOffer = {
   condition: string;
   quantity: number;
   price_usd: number;
+  markup_percent: number;
   active: boolean;
   cards: {
     id: string;
     name: string;
     set_code: string;
+    set_name: string;
     collector_number: string;
     image_url: string | null;
   };
@@ -44,6 +37,21 @@ export default function CardInventory() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+  const [selectedOfferIds, setSelectedOfferIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
+  const [editingMarkupId, setEditingMarkupId] = useState<string | null>(null);
+  const [tempMarkupValue, setTempMarkupValue] = useState<number>(0);
+  const [showBulkMarkupModal, setShowBulkMarkupModal] = useState(false);
+  const [bulkMarkupValue, setBulkMarkupValue] = useState<number>(0);
+
+  // Estados para filtros y ordenamiento
+  const [sortField, setSortField] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [filterSetCode, setFilterSetCode] = useState<string>('');
+  const [filterMinPrice, setFilterMinPrice] = useState<string>('');
+  const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
 
   const fetchOffers = async () => {
     setLoading(true);
@@ -51,7 +59,12 @@ export default function CardInventory() {
       const res = await fetch('/api/cards?admin=true');
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
-      setOffers(data.data || []);
+      // Asegurar que markup_percent siempre tenga un valor
+      const offers = (data.data || []).map((offer: any) => ({
+        ...offer,
+        markup_percent: offer.markup_percent ?? 0,
+      }));
+      setOffers(offers);
     } catch (err) {
       console.error(err);
     } finally {
@@ -108,6 +121,144 @@ export default function CardInventory() {
     }
   };
 
+  const handleUpdateMarkup = async (offerId: string, newMarkup: number) => {
+    try {
+      // Validar que el valor sea válido
+      if (isNaN(newMarkup) || newMarkup < 0 || newMarkup > 100) {
+        setToast({
+          message: 'El aumento debe ser un número entre 0 y 100',
+          type: 'error',
+        });
+        return;
+      }
+
+      // Redondear a 2 decimales para evitar overflow
+      const roundedMarkup = Math.round(newMarkup * 100) / 100;
+
+      const res = await fetch(`/api/cards/${offerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markup_percent: roundedMarkup }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al actualizar el aumento');
+      }
+
+      setOffers((prev) =>
+        prev.map((offer) =>
+          offer.id === offerId
+            ? { ...offer, markup_percent: roundedMarkup }
+            : offer
+        )
+      );
+
+      setToast({
+        message: 'Aumento actualizado correctamente',
+        type: 'success',
+      });
+      setEditingMarkupId(null);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        message:
+          err instanceof Error ? err.message : 'Error al actualizar el aumento',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleStartEditMarkup = (offerId: string, currentMarkup: number) => {
+    setEditingMarkupId(offerId);
+    setTempMarkupValue(currentMarkup);
+  };
+
+  const handleCancelEditMarkup = () => {
+    setEditingMarkupId(null);
+    setTempMarkupValue(0);
+  };
+
+  const handleSaveMarkup = (offerId: string) => {
+    handleUpdateMarkup(offerId, tempMarkupValue);
+  };
+
+  const handleOpenBulkMarkupModal = () => {
+    if (selectedOfferIds.size === 0) {
+      setToast({
+        message: 'Selecciona al menos una carta',
+        type: 'error',
+      });
+      return;
+    }
+    setBulkMarkupValue(0);
+    setShowBulkMarkupModal(true);
+  };
+
+  const handleBulkUpdateMarkup = async () => {
+    const markup = bulkMarkupValue;
+
+    if (isNaN(markup) || markup < 0 || markup > 100) {
+      setToast({
+        message: 'El aumento debe ser un número entre 0 y 100',
+        type: 'error',
+      });
+      return;
+    }
+
+    const roundedMarkup = Math.round(markup * 100) / 100;
+
+    setIsBulkActionLoading(true);
+
+    try {
+      const updatePromises = Array.from(selectedOfferIds).map((offerId) =>
+        fetch(`/api/cards/${offerId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markup_percent: roundedMarkup }),
+        })
+      );
+
+      const results = await Promise.all(updatePromises);
+      const failedCount = results.filter((res) => !res.ok).length;
+
+      if (failedCount > 0) {
+        throw new Error(
+          `${failedCount} carta${failedCount > 1 ? 's' : ''} no se pudieron actualizar`
+        );
+      }
+
+      // Actualizar estado local
+      setOffers((prev) =>
+        prev.map((offer) =>
+          selectedOfferIds.has(offer.id)
+            ? { ...offer, markup_percent: roundedMarkup }
+            : offer
+        )
+      );
+
+      setToast({
+        message: `Aumento de ${roundedMarkup}% aplicado a ${selectedOfferIds.size} carta${
+          selectedOfferIds.size > 1 ? 's' : ''
+        }`,
+        type: 'success',
+      });
+
+      // Limpiar selección y cerrar modal
+      setSelectedOfferIds(new Set());
+      setShowBulkMarkupModal(false);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        message:
+          err instanceof Error ? err.message : 'Error al actualizar aumentos',
+        type: 'error',
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
   const handleToggleActive = async (
     offerId: string,
     currentActive: boolean
@@ -132,27 +283,209 @@ export default function CardInventory() {
     }
   };
 
+  const handleBulkToggleActive = async (newActiveState: boolean) => {
+    if (selectedOfferIds.size === 0) {
+      setToast({
+        message: 'Selecciona al menos una carta',
+        type: 'error',
+      });
+      return;
+    }
+
+    const action = newActiveState ? 'activar' : 'desactivar';
+    const actionPast = newActiveState ? 'activadas' : 'desactivadas';
+    const actionPastSingular = newActiveState ? 'activada' : 'desactivada';
+
+    if (
+      !confirm(
+        `¿Estás seguro de ${action} ${selectedOfferIds.size} carta${
+          selectedOfferIds.size > 1 ? 's' : ''
+        }?`
+      )
+    ) {
+      return;
+    }
+
+    setIsBulkActionLoading(true);
+
+    try {
+      const updatePromises = Array.from(selectedOfferIds).map((offerId) =>
+        fetch(`/api/cards/${offerId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: newActiveState }),
+        })
+      );
+
+      const results = await Promise.all(updatePromises);
+      const failedCount = results.filter((res) => !res.ok).length;
+
+      if (failedCount > 0) {
+        throw new Error(
+          `${failedCount} carta${failedCount > 1 ? 's' : ''} no se pudieron ${action}`
+        );
+      }
+
+      // Actualizar estado local
+      setOffers((prev) =>
+        prev.map((offer) =>
+          selectedOfferIds.has(offer.id)
+            ? { ...offer, active: newActiveState }
+            : offer
+        )
+      );
+
+      setToast({
+        message: `${selectedOfferIds.size} carta${
+          selectedOfferIds.size > 1
+            ? `s ${actionPast}`
+            : ` ${actionPastSingular}`
+        } correctamente`,
+        type: 'success',
+      });
+
+      // Limpiar selección
+      setSelectedOfferIds(new Set());
+    } catch (err) {
+      console.error(err);
+      setToast({
+        message:
+          err instanceof Error ? err.message : `Error al ${action} cartas`,
+        type: 'error',
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleSelectOffer = (offerId: string, checked: boolean) => {
+    setSelectedOfferIds((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(offerId);
+      } else {
+        newSet.delete(offerId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean, items: CardOffer[]) => {
+    if (checked) {
+      setSelectedOfferIds(new Set(items.map((offer) => offer.id)));
+    } else {
+      setSelectedOfferIds(new Set());
+    }
+  };
+
   const filteredOffers = offers.filter(
     (offer) =>
-      offer.cards.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      offer.cards.set_code.toLowerCase().includes(searchQuery.toLowerCase())
+      offer.cards.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (filterSetCode === '' ||
+        offer.cards.set_code
+          .toLowerCase()
+          .includes(filterSetCode.toLowerCase()) ||
+        offer.cards.set_name
+          .toLowerCase()
+          .includes(filterSetCode.toLowerCase())) &&
+      (filterMinPrice === '' ||
+        offer.price_usd >= parseFloat(filterMinPrice)) &&
+      (filterMaxPrice === '' || offer.price_usd <= parseFloat(filterMaxPrice))
   );
 
+  // Aplicar ordenamiento
+  const sortedOffers = [...filteredOffers].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortField) {
+      case 'name':
+        aValue = a.cards.name.toLowerCase();
+        bValue = b.cards.name.toLowerCase();
+        break;
+      case 'set':
+        aValue = a.cards.set_code.toLowerCase();
+        bValue = b.cards.set_code.toLowerCase();
+        break;
+      case 'price':
+        aValue = a.price_usd * (1 + (a.markup_percent || 0) / 100);
+        bValue = b.price_usd * (1 + (b.markup_percent || 0) / 100);
+        break;
+      case 'stock':
+        aValue = a.quantity;
+        bValue = b.quantity;
+        break;
+      case 'condition':
+        aValue = a.condition;
+        bValue = b.condition;
+        break;
+      case 'foil':
+        aValue = a.foil;
+        bValue = b.foil;
+        break;
+      case 'active':
+        aValue = a.active ? 1 : 0;
+        bValue = b.active ? 1 : 0;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Calcular paginación
-  const totalPages = Math.ceil(filteredOffers.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedOffers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = filteredOffers.slice(startIndex, endIndex);
+  const currentItems = sortedOffers.slice(startIndex, endIndex);
+
+  const isAllSelected =
+    currentItems.length > 0 &&
+    currentItems.every((offer) => selectedOfferIds.has(offer.id));
+  const isSomeSelected =
+    selectedOfferIds.size > 0 &&
+    currentItems.some((offer) => selectedOfferIds.has(offer.id)) &&
+    !isAllSelected;
+
+  // Obtener cartas seleccionadas
+  const selectedOffers = offers.filter((offer) =>
+    selectedOfferIds.has(offer.id)
+  );
+  const hasActiveSelected = selectedOffers.some((offer) => offer.active);
+  const hasInactiveSelected = selectedOffers.some((offer) => !offer.active);
 
   // Reset página al buscar
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterSetCode, filterMinPrice, filterMaxPrice]);
 
   // Reset página al cambiar items por página
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Si ya está ordenado por este campo, invertir dirección
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Nuevo campo, ordenar ascendente
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setFilterSetCode('');
+    setFilterMinPrice('');
+    setFilterMaxPrice('');
+  };
 
   const onPageChange = (page: number) => {
     setCurrentPage(page);
@@ -168,162 +501,177 @@ export default function CardInventory() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
+    <Card>
+      <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Inventario de Cartas</h1>
         <p className="backoffice-section-description mb-4">
-          Listado completo de todas las cartas en stock ({filteredOffers.length}{' '}
-          {filteredOffers.length === 1 ? 'carta' : 'cartas'})
+          Listado completo de todas las cartas en stock ({sortedOffers.length}{' '}
+          {sortedOffers.length === 1 ? 'carta' : 'cartas'})
         </p>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="w-full md:w-64">
-            <TextInput
-              placeholder="Buscar por nombre o set..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="flex w-full flex-col gap-4">
+          <InventoryFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filterSetCode={filterSetCode}
+            setFilterSetCode={setFilterSetCode}
+            filterMinPrice={filterMinPrice}
+            setFilterMinPrice={setFilterMinPrice}
+            filterMaxPrice={filterMaxPrice}
+            setFilterMaxPrice={setFilterMaxPrice}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
+
+        {/* Barra de acciones masivas */}
+        {selectedOfferIds.size > 0 && (
+          <div className="mt-4 flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+            <span className="text-sm font-medium text-zinc-900">
+              {selectedOfferIds.size} carta
+              {selectedOfferIds.size > 1 ? 's seleccionadas' : ' seleccionada'}
+            </span>
+            <div className="flex gap-2">
+              {hasInactiveSelected && (
+                <Button
+                  size="sm"
+                  color="success"
+                  onClick={() => handleBulkToggleActive(true)}
+                  disabled={isBulkActionLoading}
+                >
+                  {isBulkActionLoading
+                    ? 'Activando...'
+                    : 'Activar seleccionadas'}
+                </Button>
+              )}
+              {hasActiveSelected && (
+                <Button
+                  size="sm"
+                  color="failure"
+                  onClick={() => handleBulkToggleActive(false)}
+                  disabled={isBulkActionLoading}
+                >
+                  {isBulkActionLoading
+                    ? 'Desactivando...'
+                    : 'Desactivar seleccionadas'}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                color="warning"
+                onClick={handleOpenBulkMarkupModal}
+                disabled={isBulkActionLoading}
+              >
+                Ajustar aumento
+              </Button>
+              <Button
+                size="sm"
+                color="gray"
+                onClick={() => setSelectedOfferIds(new Set())}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor="itemsPerPage" className="text-sm text-slate-700">
-              Mostrar:
-            </label>
-            <Select
-              id="itemsPerPage"
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="w-24"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </Select>
+        )}
+      </div>
+
+      <InventoryTable
+        items={currentItems}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        selectedOfferIds={selectedOfferIds}
+        onSelectOffer={handleSelectOffer}
+        onSelectAll={handleSelectAll}
+        onUpdateStock={handleUpdateStock}
+        onToggleActive={handleToggleActive}
+        onStartEditMarkup={handleStartEditMarkup}
+        editingMarkupId={editingMarkupId}
+        tempMarkupValue={tempMarkupValue}
+        setTempMarkupValue={setTempMarkupValue}
+        onSaveMarkup={handleSaveMarkup}
+        onCancelEditMarkup={handleCancelEditMarkup}
+        fxRate={fxRate}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        hasResults={filteredOffers.length > 0}
+        hasFilteredResults={sortedOffers.length > 0}
+      />
+
+      {toast && (
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Modal de ajuste masivo de aumento */}
+      {showBulkMarkupModal && (
+        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+              Ajustar aumento de precio
+            </h3>
+            <p className="mb-4 text-sm text-gray-600">
+              Aplicar aumento a {selectedOfferIds.size} carta
+              {selectedOfferIds.size > 1 ? 's seleccionadas' : ' seleccionada'}
+            </p>
+            <div className="mb-6">
+              <label
+                htmlFor="bulkMarkup"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Porcentaje de aumento (0-100%)
+              </label>
+              <TextInput
+                id="bulkMarkup"
+                type="number"
+                min={0}
+                max={100}
+                step={0.5}
+                value={bulkMarkupValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setBulkMarkupValue(0);
+                    return;
+                  }
+                  const numValue = parseFloat(value);
+                  if (!isNaN(numValue)) {
+                    const clamped = Math.max(0, Math.min(100, numValue));
+                    const rounded = Math.round(clamped * 100) / 100;
+                    setBulkMarkupValue(rounded);
+                  }
+                }}
+                placeholder="Ejemplo: 15"
+                autoFocus
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                El aumento se aplicará sobre el precio base en USD
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                color="gray"
+                onClick={() => setShowBulkMarkupModal(false)}
+                disabled={isBulkActionLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                color="warning"
+                onClick={handleBulkUpdateMarkup}
+                disabled={isBulkActionLoading}
+              >
+                {isBulkActionLoading ? 'Aplicando...' : 'Aplicar aumento'}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Nombre</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Set</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Foil</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Condición</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Precio USD</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Stock</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Estado</TableHeadCell>
-              <TableHeadCell className="px-6 py-3">Acciones</TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody className="divide-y divide-gray-200">
-            {currentItems.map((offer) => (
-              <TableRow key={offer.id} className="bg-white hover:bg-gray-50">
-                <TableCell className="px-6 py-4">
-                  {offer.cards.image_url ? (
-                    <Image
-                      src={offer.cards.image_url}
-                      alt={offer.cards.name}
-                      width={50}
-                      height={70}
-                      className="rounded"
-                    />
-                  ) : (
-                    <div className="h-[70px] w-[50px] rounded bg-gray-200" />
-                  )}
-                </TableCell>
-                <TableCell className="px-6 py-4 font-medium text-gray-900">
-                  {offer.cards.name}
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  {offer.cards.set_code.toUpperCase()} #
-                  {offer.cards.collector_number}
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
-                    {offer.foil}
-                  </span>
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
-                    {offer.condition}
-                  </span>
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  ${offer.price_usd.toFixed(2)} USD
-                  <br />
-                  <span className="text-xs text-gray-500">
-                    ${(offer.price_usd * fxRate).toFixed(0)} CLP
-                  </span>
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <TextInput
-                    type="number"
-                    min={0}
-                    defaultValue={offer.quantity}
-                    onBlur={(e) => {
-                      const newQty = Number(e.target.value);
-                      if (newQty !== offer.quantity) {
-                        handleUpdateStock(offer.id, newQty);
-                      }
-                    }}
-                    className="w-20"
-                  />
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                      offer.active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {offer.active ? 'Activo' : 'Inactivo'}
-                  </span>
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <Button
-                    size="xs"
-                    color={offer.active ? 'failure' : 'success'}
-                    onClick={() => handleToggleActive(offer.id, offer.active)}
-                  >
-                    {offer.active ? 'Desactivar' : 'Activar'}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        {filteredOffers.length === 0 && (
-          <div className="py-8 text-center text-gray-500">
-            No se encontraron cartas
-          </div>
-        )}
-
-        {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-              showIcons
-              previousLabel="Anterior"
-              nextLabel="Siguiente"
-            />
-          </div>
-        )}
-
-        {toast && (
-          <ToastNotification
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
-      </div>
-    </div>
+      )}
+    </Card>
   );
 }

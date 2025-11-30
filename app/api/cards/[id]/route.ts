@@ -12,12 +12,17 @@ export async function PATCH(
     const offerId = (params as any).id;
     const body = await req.json().catch(() => ({}));
 
-    const { quantity, active } = body as {
+    const { quantity, active, markup_percent } = body as {
       quantity?: number;
       active?: boolean;
+      markup_percent?: number;
     };
 
-    if (quantity === undefined && active === undefined) {
+    if (
+      quantity === undefined &&
+      active === undefined &&
+      markup_percent === undefined
+    ) {
       return NextResponse.json({ error: 'missing fields' }, { status: 400 });
     }
 
@@ -57,6 +62,30 @@ export async function PATCH(
       const upd = await supabase
         .from('card_offers')
         .update({ active: active ? true : false, updated_at: now })
+        .eq('id', offerId);
+      if ((upd as any).error) {
+        return NextResponse.json(
+          { error: (upd as any).error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (markup_percent !== undefined) {
+      const markupNum = Number(markup_percent);
+      if (!Number.isFinite(markupNum) || markupNum < 0 || markupNum > 100) {
+        return NextResponse.json(
+          { error: 'El aumento debe ser un número entre 0 y 100' },
+          { status: 400 }
+        );
+      }
+
+      // Redondear a 2 decimales para evitar overflow
+      const roundedMarkup = Math.round(markupNum * 100) / 100;
+
+      const upd = await supabase
+        .from('card_offers')
+        .update({ markup_percent: roundedMarkup, updated_at: now })
         .eq('id', offerId);
       if ((upd as any).error) {
         return NextResponse.json(

@@ -53,6 +53,7 @@ export interface CardOffer {
 
   quantity: number; // >= 0
   price_usd?: number | null; // snapshot Scryfall en USD
+  markup_percent?: number; // porcentaje de markup sobre price_usd (default 0)
   price_source: string; // 'scryfall' (por ahora)
   price_updated_at?: string | null; // ISO
 

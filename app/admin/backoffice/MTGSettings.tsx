@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Label, TextInput } from 'flowbite-react';
 
-export default function Settings() {
+export default function MTGSettings() {
   const [fxRate, setFxRate] = useState<string>('');
   const [minCardPrice, setMinCardPrice] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -13,17 +13,17 @@ export default function Settings() {
   } | null>(null);
 
   useEffect(() => {
-    // Cargar configuración actual
+    // Cargar configuración actual de MTG
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/settings`);
+        const res = await fetch(`/api/settings?game=mtg`);
         const body = await res.json().catch(() => ({}));
-        if (body?.rate) {
-          setFxRate(String(body.rate));
+        if (body?.fx_usdclp?.rate !== undefined) {
+          setFxRate(String(body.fx_usdclp.rate));
         }
-        if (body?.minCardPrice !== undefined) {
-          setMinCardPrice(String(body.minCardPrice));
+        if (body?.min_card_price_clp?.amount !== undefined) {
+          setMinCardPrice(String(body.min_card_price_clp.amount));
         }
       } catch (e) {
         console.error(e);
@@ -60,39 +60,27 @@ export default function Settings() {
         return;
       }
 
-      // Guardar tipo de cambio
-      const fxRes = await fetch(`/api/settings`, {
+      // Guardar configuración de MTG
+      const mtgRes = await fetch(`/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          key: 'fx_usdclp',
-          value: { rate },
+          key: 'mtg',
+          value: {
+            fx_usdclp: { rate },
+            min_card_price_clp: { amount: minPrice },
+          },
         }),
       });
 
-      if (!fxRes.ok) {
-        const body = await fxRes.json().catch(() => ({}));
-        throw new Error(body?.error ?? 'Error al guardar tipo de cambio');
-      }
-
-      // Guardar precio mínimo
-      const minPriceRes = await fetch(`/api/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: 'min_card_price_clp',
-          value: { amount: minPrice },
-        }),
-      });
-
-      if (!minPriceRes.ok) {
-        const body = await minPriceRes.json().catch(() => ({}));
-        throw new Error(body?.error ?? 'Error al guardar precio mínimo');
+      if (!mtgRes.ok) {
+        const body = await mtgRes.json().catch(() => ({}));
+        throw new Error(body?.error ?? 'Error al guardar configuración de MTG');
       }
 
       setMessage({
         type: 'success',
-        text: 'Configuración actualizada correctamente',
+        text: 'Configuración de MTG actualizada correctamente',
       });
     } catch (err: any) {
       console.error(err);
@@ -113,16 +101,16 @@ export default function Settings() {
   return (
     <Card>
       <div className="mb-6 flex flex-col items-start justify-center">
-        <h1>Configuración</h1>
+        <h1>Configuración de Magic: The Gathering</h1>
         <p className="backoffice-section-description">
-          Ajustes generales del sistema
+          Ajustes de precios para cartas de Magic
         </p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         <div>
           <Label htmlFor="fxRate" className="mb-2">
-            Tipo de Cambio USD/CLP
+            Tipo de Cambio USD/CLP (MTG)
           </Label>
           <TextInput
             id="fxRate"
@@ -131,11 +119,11 @@ export default function Settings() {
             min="0"
             value={fxRate}
             onChange={(e) => setFxRate(e.target.value)}
-            placeholder="ej. 950.50"
+            placeholder="ej. 1000"
             required
           />
           <p className="mt-1 text-xs text-slate-600">
-            1 USD = {fxRate || '0'} CLP
+            1 USD = {fxRate || '0'} CLP para cartas de Magic
           </p>
         </div>
 
@@ -150,11 +138,11 @@ export default function Settings() {
             min="0"
             value={minCardPrice}
             onChange={(e) => setMinCardPrice(e.target.value)}
-            placeholder="ej. 100"
+            placeholder="ej. 499"
             required
           />
           <p className="mt-1 text-xs text-slate-600">
-            Si precio USD por Tasa de Cambio es menor a este valor, se usará
+            Si el precio USD × Tipo de Cambio es menor a este valor, se usará
             este mínimo
           </p>
         </div>
@@ -182,12 +170,15 @@ export default function Settings() {
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-600">
             <li>
               El <strong>tipo de cambio</strong> se utiliza para convertir los
-              precios de USD a CLP en el catálogo público.
+              precios de USD a CLP específicamente para cartas de Magic.
             </li>
             <li>
-              El <strong>precio mínimo en CLP</strong> se aplica cuando el
-              precio USD multiplicado por el tipo de cambio es inferior a este
-              valor, garantizando un precio mínimo por carta.
+              El <strong>precio mínimo</strong> garantiza que ninguna carta se
+              venda por debajo de este valor en CLP.
+            </li>
+            <li>
+              Cada juego (Magic, Pokémon) puede tener su propio tipo de cambio y
+              precio mínimo.
             </li>
           </ul>
         </div>

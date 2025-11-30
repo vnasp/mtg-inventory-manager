@@ -254,6 +254,7 @@ export async function POST(req: Request) {
           condition,
           quantity: Number(quantity),
           price_usd,
+          markup_percent: 0, // Default markup
           price_source,
           price_updated_at: now,
           active: true,
@@ -293,7 +294,7 @@ export async function GET(req: Request) {
     let query = supabase
       .from('card_offers')
       .select(
-        `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
+        `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
       )
       .order('created_at', { ascending: false });
 

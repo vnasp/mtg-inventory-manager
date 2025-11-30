@@ -8,77 +8,44 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function GET(req: Request) {
   try {
     const supabase = createSupabase(supabaseUrl, supabaseKey);
+    const { searchParams } = new URL(req.url);
+    const game = searchParams.get('game'); // 'mtg', 'pokemon', o 'global'
 
-    // Obtener tipo de cambio
-    const { data: fxData, error: fxError } = await supabase
+    if (!game) {
+      return NextResponse.json(
+        { error: 'Missing game parameter' },
+        { status: 400 }
+      );
+    }
+
+    // Obtener configuración específica del juego
+    const { data, error } = await supabase
       .from('settings')
       .select('value')
-      .eq('key', 'fx_usdclp')
+      .eq('key', game)
       .limit(1)
       .maybeSingle();
 
-    if (fxError) {
-      return NextResponse.json({ error: fxError.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const fxRecord = fxData as any;
-    let rate: number | undefined;
+    const record = data as any;
+    let settings = {};
 
-    if (fxRecord && fxRecord.value != null) {
+    if (record && record.value != null) {
       try {
-        if (typeof fxRecord.value === 'object') {
-          rate = Number(fxRecord.value.rate);
+        if (typeof record.value === 'object') {
+          settings = record.value;
         } else {
-          const parsed = JSON.parse(String(fxRecord.value));
-          rate = Number(parsed.rate);
-        }
-
-        if (isNaN(rate)) {
-          rate = undefined;
+          settings = JSON.parse(String(record.value));
         }
       } catch (e) {
-        console.error('Error parsing FX rate:', e);
-        rate = undefined;
+        console.error('Error parsing settings:', e);
       }
     }
 
-    // Obtener precio mínimo de carta
-    const { data: minPriceData, error: minPriceError } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'min_card_price_clp')
-      .limit(1)
-      .maybeSingle();
-
-    if (minPriceError) {
-      console.error('Error fetching min card price:', minPriceError);
-    }
-
-    const minPriceRecord = minPriceData as any;
-    let minCardPrice: number | undefined;
-
-    if (minPriceRecord && minPriceRecord.value != null) {
-      try {
-        if (typeof minPriceRecord.value === 'object') {
-          minCardPrice = Number(minPriceRecord.value.amount);
-        } else {
-          const parsed = JSON.parse(String(minPriceRecord.value));
-          minCardPrice = Number(parsed.amount);
-        }
-
-        if (isNaN(minCardPrice)) {
-          minCardPrice = undefined;
-        }
-      } catch (e) {
-        console.error('Error parsing min card price:', e);
-        minCardPrice = undefined;
-      }
-    }
-
-    return NextResponse.json({
-      rate,
-      minCardPrice,
-    });
+    return NextResponse.json(settings);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -104,25 +71,33 @@ export async function PUT(req: Request) {
     }
 
     // Validar según el tipo de clave
-    if (key === 'fx_usdclp') {
-      if (typeof value === 'object' && value.rate) {
-        const rate = Number(value.rate);
-        if (isNaN(rate) || rate <= 0) {
-          return NextResponse.json(
-            { error: 'Invalid rate value' },
-            { status: 400 }
-          );
+    if (key === 'mtg' || key === 'pokemon') {
+      if (typeof value === 'object') {
+        if (value.fx_usdclp?.rate !== undefined) {
+          const rate = Number(value.fx_usdclp.rate);
+          if (isNaN(rate) || rate <= 0) {
+            return NextResponse.json(
+              { error: 'Invalid fx_usdclp.rate value' },
+              { status: 400 }
+            );
+          }
+        }
+        if (value.min_card_price_clp?.amount !== undefined) {
+          const minPrice = Number(value.min_card_price_clp.amount);
+          if (isNaN(minPrice) || minPrice < 0) {
+            return NextResponse.json(
+              { error: 'Invalid min_card_price_clp.amount value' },
+              { status: 400 }
+            );
+          }
         }
       }
-    } else if (key === 'min_card_price_clp') {
-      if (typeof value === 'object' && value.amount !== undefined) {
-        const amount = Number(value.amount);
-        if (isNaN(amount) || amount < 0) {
-          return NextResponse.json(
-            { error: 'Invalid amount value' },
-            { status: 400 }
-          );
-        }
+    } else if (key === 'global') {
+      if (typeof value === 'object' && value.contact_info) {
+        // Validación básica de contact_info - todos los campos son opcionales
+        const { email, phone, instagram, facebook, x, address } =
+          value.contact_info;
+        // No se requiere validación estricta, todos son strings opcionales
       }
     }
 

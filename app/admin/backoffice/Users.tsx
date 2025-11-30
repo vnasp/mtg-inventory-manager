@@ -10,6 +10,7 @@ import {
   Modal,
   Label,
   TextInput,
+  Card,
 } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
@@ -135,9 +136,8 @@ export default function Users() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Header de sección */}
-      <div className="mb-6">
+    <Card>
+      <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Gestión de Usuarios</h1>
         <p className="backoffice-section-description">
           Administra los usuarios del sistema
@@ -248,6 +248,6 @@ export default function Users() {
           </div>
         </div>
       </Modal>
-    </div>
+    </Card>
   );
 }
