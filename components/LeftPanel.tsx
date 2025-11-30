@@ -25,9 +25,7 @@ export default function LeftPanel({
   const [setName, setSetName] = useState('all');
   const [condition, setCondition] = useState('all');
   const [typeLine, setTypeLine] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
 
-  // Estados de acordeón - los más usados abiertos por defecto
   const [accordionOpen, setAccordionOpen] = useState({
     price: true,
     colors: true,
@@ -91,7 +89,6 @@ export default function LeftPanel({
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-xl font-bold text-gray-900">Filtros</h2>
-        <p className="text-sm text-gray-500">Refina tu búsqueda</p>
       </div>
 
       {/* Panel de filtros moderno con acordeón */}

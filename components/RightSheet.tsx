@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SearchBar from '@/components/SearchBar';
 import { Button, Card, Pagination, Select } from 'flowbite-react';
 import CardDetailModal from './CardDetailModal';
+import CardItem from './CardItem';
 import type { Filters } from './CatalogClient';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
@@ -37,17 +38,17 @@ export default function RightSheet({
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
-        // Mobile: 2 columnas × 2 filas = 4 items
-        setItemsPerPage(2);
+        // Mobile: 1 columna × 6 filas = 6 items
+        setItemsPerPage(6);
       } else if (window.innerWidth < 768) {
-        // SM: 3 columnas × 2 filas = 6 items
+        // SM: 2 columnas × 3 filas = 6 items
         setItemsPerPage(6);
       } else if (window.innerWidth < 1024) {
-        // MD: 4 columnas × 2 filas = 8 items
-        setItemsPerPage(8);
+        // MD: 3 columnas × 3 filas = 9 items
+        setItemsPerPage(9);
       } else {
         // LG+: 5 columnas × 3 filas = 15 items
-        setItemsPerPage(10);
+        setItemsPerPage(15);
       }
     };
 
@@ -321,7 +322,7 @@ export default function RightSheet({
               onChange={(e) => {
                 setSortBy(e.target.value);
               }}
-              className="h-[42px] w-48 rounded-lg border-gray-300 bg-gray-50 px-4 text-sm shadow-sm transition-colors focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              className="w-48"
             >
               <option value="newest">Más recientes</option>
               <option value="oldest">Más antiguos</option>
@@ -399,126 +400,21 @@ export default function RightSheet({
       ) : (
         <>
           {/* Grid de productos */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {currentItems.map((o) => {
-              const card = o.cards ?? o.card ?? null;
-
-              // Precio en USD desde la oferta (fallback a 0 si no existe)
-              const priceUsd = Number(o.price_usd ?? 0);
-              // Si fxRate está presente, convertir; si no, mostrar USD sin conversión
-              const priceClp = fxRate
-                ? Math.round(priceUsd * fxRate)
-                : priceUsd;
-              // Aplicar precio mínimo si hay fxRate
-              const minCardPrice = minCardPriceClp ?? 100;
-              const converted = fxRate
-                ? Math.max(priceClp, minCardPrice)
-                : priceUsd;
-
-              // Formatear: si hay fxRate asumimos CLP, si no mostramos USD
-              const formattedPrice = fxRate
-                ? new Intl.NumberFormat('es-CL', {
-                    style: 'currency',
-                    currency: 'CLP',
-                    maximumFractionDigits: 0,
-                  }).format(converted)
-                : new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                  }).format(converted);
-
-              return (
-                <article
-                  key={o.id}
-                  onClick={() => openModal(o)}
-                  className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
-                >
-                  {/* Imagen de la carta */}
-                  <div className="relative aspect-5/7 overflow-hidden bg-linear-to-br from-purple-100 to-pink-100">
-                    {card?.image_url ? (
-                      <Image
-                        src={card.image_url}
-                        alt={card.name}
-                        width={300}
-                        height={420}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-gray-400">
-                        <svg
-                          className="h-16 w-16"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                    )}
-
-                    {/* Overlay con efecto hover */}
-                    <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10" />
-                  </div>
-
-                  {/* Info de la carta */}
-                  <div className="p-3">
-                    {/* Nombre de la carta */}
-                    <h3 className="mb-1 line-clamp-2 text-sm font-semibold text-gray-900 lg:text-base">
-                      {card?.name || 'Sin nombre'}
-                    </h3>
-
-                    {/* Set */}
-                    {card?.set_name && (
-                      <p className="mb-2 line-clamp-1 text-xs text-gray-500">
-                        {card.set_name}
-                      </p>
-                    )}
-
-                    {/* Precio */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-purple-600 lg:text-xl">
-                        {formattedPrice}
-                      </span>
-
-                      {/* Badge de stock */}
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                        Stock: {o.quantity}
-                      </span>
-                    </div>
-
-                    {/* Badge de condición y foil */}
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {o.condition && (
-                        <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                          {mapConditionToSpanish(o.condition)}
-                        </span>
-                      )}
-                      {o.foil && o.foil !== 'nonfoil' && (
-                        <span className="rounded-md bg-linear-to-r from-yellow-400 to-pink-400 px-2 py-0.5 text-xs font-medium text-white">
-                          ✨ {mapFoilToSpanish(o.foil)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Botón de acción rápida (aparece al hover) */}
-                  <div className="absolute right-3 bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                    <Button
-                      onClick={() => openModal(o)}
-                      className="w-full"
-                      size="sm"
-                    >
-                      Ver detalles
-                    </Button>
-                  </div>
-                </article>
-              );
-            })}
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            }}
+          >
+            {currentItems.map((o) => (
+              <CardItem
+                key={o.id}
+                offer={o}
+                fxRate={fxRate}
+                minCardPriceClp={minCardPriceClp}
+                onClick={() => openModal(o)}
+              />
+            ))}
           </div>
 
           {/* Paginación */}

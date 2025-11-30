@@ -82,9 +82,9 @@ const themeVG = createTheme({
       popup: 'pt-0',
     },
     header: {
-      base: 'flex items-center justify-start rounded-t border-b-0 px-14 bg-primary !text-primaryDark',
+      base: 'flex items-center rounded-t border-b-0 px-14 bg-primary !text-primaryDark',
       popup: 'border-b-0 p-2',
-      title: 'text-[27px] text-start !text-primaryDark',
+      title: 'text-[27px] !text-primaryDark w-full',
       close: {
         base: 'ml-auto hidden items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 focus:ring-0',
         icon: 'h-5 w-5',
@@ -98,6 +98,19 @@ const themeVG = createTheme({
   spinner: {
     color: {
       default: 'fill-primaryDark',
+    },
+  },
+  badge: {
+    root: {
+      base: 'flex h-fit items-center gap-1 font-semibold',
+      color: {
+        gray: 'bg-gray-100 text-gray-800',
+        warning: 'bg-yellow-100 text-yellow-800',
+      },
+      size: {
+        xs: 'px-2 py-0.5 text-[10px]',
+        sm: 'px-2 py-0.5 text-xs',
+      },
     },
   },
   textInput: {

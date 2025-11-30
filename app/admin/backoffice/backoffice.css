@@ -14,18 +14,18 @@
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
 
-  /* Brand colors - Morado y Naranja */
-  --color-bo-primary: #9c35bf; /* Morado - Primary actions */
-  --color-bo-primary-dark: #7a2a99; /* Morado oscuro */
-  --color-bo-primary-light: #f3e5f8; /* Morado claro */
-  --color-bo-primary-hover: #8b2fad; /* Morado hover */
+  /* Brand colors - Modern Monochrome */
+  --color-bo-primary: #18181b; /* Zinc 900 - Primary actions */
+  --color-bo-primary-dark: #09090b; /* Zinc 950 - Primary dark */
+  --color-bo-primary-light: #f4f4f5; /* Zinc 100 - Primary light */
+  --color-bo-primary-hover: #27272a; /* Zinc 800 - Primary hover */
 
-  --color-bo-secondary: #e79640; /* Naranja - Accent */
-  --color-bo-secondary-dark: #d17f2a; /* Naranja oscuro */
-  --color-bo-secondary-light: #fef3e7; /* Naranja claro */
+  --color-bo-secondary: #52525b; /* Zinc 600 - Accent */
+  --color-bo-secondary-dark: #3f3f46; /* Zinc 700 - Secondary dark */
+  --color-bo-secondary-light: #e4e4e7; /* Zinc 200 - Secondary light */
 
-  --color-bo-success: #10b981; /* Verde para success */
-  --color-bo-danger: #ef4444; /* Rojo para danger */
+  --color-bo-success: #10b981; /* Green for success */
+  --color-bo-danger: #ef4444; /* Red for danger */
 
   /* Modern backgrounds with depth */
   --color-bo-bg-main: #f8fafc; /* Slate 50 - Main background */
@@ -115,7 +115,7 @@
 }
 
 .backoffice-badge-primary {
-  @apply bg-[#f3e5f8] text-[#7a2a99];
+  @apply bg-zinc-100 text-zinc-800;
 }
 
 .backoffice-badge-success {
@@ -123,7 +123,7 @@
 }
 
 .backoffice-badge-warning {
-  @apply bg-[#fef3e7] text-[#d17f2a];
+  @apply bg-amber-100 text-amber-800;
 }
 
 .backoffice-badge-danger {
@@ -136,7 +136,7 @@
 }
 
 .backoffice-menu-item-active {
-  @apply from-bo-primary bg-linear-to-r to-[#8b2fad] text-white shadow-md hover:from-[#8b2fad] hover:to-[#7a2a99];
+  @apply bg-linear-to-r from-zinc-900 to-zinc-800 text-white shadow-md hover:from-zinc-800 hover:to-zinc-700;
 }
 
 /* Scroll styling */
