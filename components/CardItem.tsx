@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Badge } from 'flowbite-react';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
+import { calculatePriceClp } from '@/utils/priceCalculations';
 
 type Props = {
   offer: any;
@@ -22,11 +23,23 @@ export default function CardItem({
 
   // Precio en USD desde la oferta (fallback a 0 si no existe)
   const priceUsd = Number(offer.price_usd ?? 0);
-  // Si fxRate está presente, convertir; si no, mostrar USD sin conversión
-  const priceClp = fxRate ? Math.round(priceUsd * fxRate) : priceUsd;
-  // Aplicar precio mínimo si hay fxRate
-  const minCardPrice = minCardPriceClp ?? 100;
-  const converted = fxRate ? Math.max(priceClp, minCardPrice) : priceUsd;
+  const markupPercent = Number(offer.markup_percent ?? 0);
+
+  // Calcular precio con markup
+  let converted: number;
+  if (fxRate) {
+    // Si hay fxRate, calcular precio en CLP con markup y mínimo
+    const minCardPrice = minCardPriceClp ?? 100;
+    converted = calculatePriceClp(
+      priceUsd,
+      markupPercent,
+      fxRate,
+      minCardPrice
+    );
+  } else {
+    // Si no hay fxRate, solo aplicar markup al USD
+    converted = priceUsd * (1 + markupPercent / 100);
+  }
 
   // Formatear: si hay fxRate asumimos CLP, si no mostramos USD
   const formattedPrice = fxRate
@@ -51,8 +64,8 @@ export default function CardItem({
           <Image
             src={card.image_url}
             alt={card.name}
-            width={300}
-            height={420}
+            width={200}
+            height={280}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
@@ -80,7 +93,7 @@ export default function CardItem({
       {/* Info de la carta */}
       <div className="space-y-2 p-3">
         {/* Nombre de la carta */}
-        <h3 className="line-clamp-2 min-h-10 text-sm font-semibold text-gray-900 lg:text-base">
+        <h3 className="line-clamp-1 text-sm font-semibold text-gray-900 lg:text-base">
           {card?.name || 'Sin nombre'}
         </h3>
 

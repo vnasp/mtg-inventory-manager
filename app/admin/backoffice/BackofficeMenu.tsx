@@ -44,7 +44,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
           onClick={() => setActiveSection('users')}
           className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-all ${
             activeSection === 'users'
-              ? 'bg-secondary text-white shadow-md'
+              ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-md'
               : 'text-slate-700 hover:bg-slate-100'
           }`}
         >
@@ -75,7 +75,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('mtg-add')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'mtg-add'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -85,7 +85,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('mtg-inventory')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'mtg-inventory'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -95,7 +95,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('mtg-settings')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'mtg-settings'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -128,7 +128,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('pokemon-add')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'pokemon-add'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -138,7 +138,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('pokemon-inventory')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'pokemon-inventory'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -148,7 +148,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
                 onClick={() => setActiveSection('pokemon-settings')}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-all ${
                   activeSection === 'pokemon-settings'
-                    ? 'bg-secondary text-white shadow-sm'
+                    ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -163,7 +163,7 @@ function BackofficeMenu({ activeSection, setActiveSection }: Props) {
           onClick={() => setActiveSection('global-settings')}
           className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-all ${
             activeSection === 'global-settings'
-              ? 'bg-secondary text-white shadow-md'
+              ? 'bg-bo-primary hover:bg-bo-primary-hover text-white shadow-md'
               : 'text-slate-700 hover:bg-slate-100'
           }`}
         >

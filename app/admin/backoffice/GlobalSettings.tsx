@@ -179,7 +179,7 @@ export default function GlobalSettings() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button type="submit" disabled={saving} className="bg-primary">
+          <Button type="submit" disabled={saving} className="bg-bo-primary">
             {saving ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
 
@@ -199,10 +199,7 @@ export default function GlobalSettings() {
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <h3 className="mb-2 font-semibold text-slate-700">Información</h3>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-600">
-            <li>
-              Esta información de contacto se utilizará en el catálogo público y
-              otras comunicaciones.
-            </li>
+            <li>Esta información de contacto se utilizará en la página web.</li>
             <li>
               Todos los campos son opcionales. Completa solo los que desees
               mostrar públicamente.

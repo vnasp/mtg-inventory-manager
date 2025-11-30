@@ -160,7 +160,7 @@ export default function Settings() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button type="submit" disabled={saving} className="bg-primary">
+          <Button type="submit" disabled={saving} className="bg-bo-primary">
             {saving ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import LeftPanel from '@/components/LeftPanel';
 import RightSheet from '@/components/RightSheet';
+import { calculatePriceClp } from '@/utils/priceCalculations';
 
 type Props = {
   offers: any[];
@@ -37,8 +38,9 @@ export default function CatalogClient({
     const minPrice = minCardPriceClp ?? 100;
     const prices = offers
       .map((o) => {
-        const priceClp = Math.round(Number(o.price_usd ?? 0) * fxRate);
-        return Math.max(priceClp, minPrice);
+        const priceUsd = Number(o.price_usd ?? 0);
+        const markupPercent = Number(o.markup_percent ?? 0);
+        return calculatePriceClp(priceUsd, markupPercent, fxRate, minPrice);
       })
       .filter((p) => p > 0);
 

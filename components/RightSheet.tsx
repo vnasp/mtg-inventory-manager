@@ -38,17 +38,17 @@ export default function RightSheet({
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
-        // Mobile: 2 columnas × 2 filas = 4 items
-        setItemsPerPage(2);
+        // Mobile: 1 columna × 6 filas = 6 items
+        setItemsPerPage(6);
       } else if (window.innerWidth < 768) {
-        // SM: 3 columnas × 2 filas = 6 items
+        // SM: 2 columnas × 3 filas = 6 items
         setItemsPerPage(6);
       } else if (window.innerWidth < 1024) {
-        // MD: 4 columnas × 2 filas = 8 items
-        setItemsPerPage(8);
+        // MD: 3 columnas × 3 filas = 9 items
+        setItemsPerPage(9);
       } else {
         // LG+: 5 columnas × 3 filas = 15 items
-        setItemsPerPage(10);
+        setItemsPerPage(15);
       }
     };
 
@@ -400,7 +400,12 @@ export default function RightSheet({
       ) : (
         <>
           {/* Grid de productos */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            }}
+          >
             {currentItems.map((o) => (
               <CardItem
                 key={o.id}

@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Modal, Button, ModalBody, ModalFooter } from 'flowbite-react';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
+import { calculatePriceClp } from '@/utils/priceCalculations';
 
 type Props = {
   show: boolean;
@@ -24,9 +25,22 @@ export default function CardDetailModal({
 
   const card = offer.cards ?? offer.card ?? null;
   const priceUsd = Number(offer.price_usd ?? 0);
-  const priceClp = fxRate ? Math.round(priceUsd * fxRate) : priceUsd;
-  const minCardPrice = minCardPriceClp ?? 100;
-  const converted = fxRate ? Math.max(priceClp, minCardPrice) : priceUsd;
+  const markupPercent = Number(offer.markup_percent ?? 0);
+
+  // Calcular precio con markup
+  let converted: number;
+  if (fxRate) {
+    const minCardPrice = minCardPriceClp ?? 100;
+    converted = calculatePriceClp(
+      priceUsd,
+      markupPercent,
+      fxRate,
+      minCardPrice
+    );
+  } else {
+    converted = priceUsd * (1 + markupPercent / 100);
+  }
+
   const formattedPrice = fxRate
     ? new Intl.NumberFormat('es-CL', {
         style: 'currency',

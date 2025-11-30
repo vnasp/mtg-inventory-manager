@@ -328,8 +328,7 @@ export default function CardSearch() {
           color="gray"
           className="w-full md:w-auto"
         >
-          <HiDocumentText className="mr-2 h-5 w-5" />
-          {importing ? 'Importando...' : 'SELECCIONAR ARCHIVO CSV'}
+          {importing ? 'Importando...' : 'Importar archivo CSV'}
         </Button>
 
         {importProgress && (
@@ -418,7 +417,7 @@ export default function CardSearch() {
             <Button
               type="submit"
               disabled={loading || !setName || !collectorNumber}
-              className="bg-primary"
+              className="bg-bo-primary"
             >
               {loading ? 'Buscando...' : 'Buscar'}
             </Button>
@@ -551,7 +550,7 @@ export default function CardSearch() {
                   <Button
                     onClick={handleAddCard}
                     disabled={!version || stock <= 0}
-                    className="bg-primary w-full"
+                    className="bg-bo-primary w-full"
                   >
                     Agregar carta
                   </Button>
