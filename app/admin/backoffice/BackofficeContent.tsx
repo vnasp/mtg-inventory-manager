@@ -2,13 +2,22 @@
 import { useState } from 'react';
 import CardSearch from './CardSearch';
 import CardInventory from './CardInventory';
-import Settings from './Settings';
+import MTGSettings from './MTGSettings';
+import PokemonSettings from './PokemonSettings';
+import GlobalSettings from './GlobalSettings';
 import Users from './Users';
 import BackofficeMenu from './BackofficeMenu';
 
 export default function BackofficeContent() {
   const [activeSection, setActiveSection] = useState<
-    'users' | 'cards-add' | 'cards-inventory' | 'cards-settings'
+    | 'users'
+    | 'mtg-add'
+    | 'mtg-inventory'
+    | 'mtg-settings'
+    | 'pokemon-add'
+    | 'pokemon-inventory'
+    | 'pokemon-settings'
+    | 'global-settings'
   >('users');
 
   return (
@@ -24,9 +33,25 @@ export default function BackofficeContent() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-6">
         {activeSection === 'users' && <Users />}
-        {activeSection === 'cards-add' && <CardSearch />}
-        {activeSection === 'cards-inventory' && <CardInventory />}
-        {activeSection === 'cards-settings' && <Settings />}
+        {activeSection === 'mtg-add' && <CardSearch />}
+        {activeSection === 'mtg-inventory' && <CardInventory />}
+        {activeSection === 'mtg-settings' && <MTGSettings />}
+        {activeSection === 'pokemon-add' && (
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <p className="text-slate-600">
+              Funcionalidad de agregar cartas Pokémon próximamente...
+            </p>
+          </div>
+        )}
+        {activeSection === 'pokemon-inventory' && (
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <p className="text-slate-600">
+              Inventario de cartas Pokémon próximamente...
+            </p>
+          </div>
+        )}
+        {activeSection === 'pokemon-settings' && <PokemonSettings />}
+        {activeSection === 'global-settings' && <GlobalSettings />}
       </main>
     </div>
   );

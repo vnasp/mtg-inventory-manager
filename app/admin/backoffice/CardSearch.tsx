@@ -58,9 +58,11 @@ export default function CardSearch() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch(`/api/settings`);
+        const res = await fetch(`/api/settings?game=mtg`);
         const body = await res.json().catch(() => ({}));
-        if (mounted && body?.rate) setFxRate(Number(body.rate));
+        if (mounted && body?.fx_usdclp?.rate) {
+          setFxRate(Number(body.fx_usdclp.rate));
+        }
       } catch (e) {
         // ignore
       }
