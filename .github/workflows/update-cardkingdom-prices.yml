@@ -1,0 +1,31 @@
+name: Update CardKingdom Prices
+
+on:
+  # Disparo manual (para probar hoy)
+  workflow_dispatch: {}
+
+  # Una vez a la semana (ej: lunes 03:00 UTC)
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run update script
+        run: npm run update:cardkingdom
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
