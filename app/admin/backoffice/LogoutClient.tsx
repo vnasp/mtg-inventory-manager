@@ -17,7 +17,7 @@ export default function LogoutClient() {
   };
 
   return (
-    <Button color="light" size="sm" onClick={handleLogout}>
+    <Button color="secondary" size="sm" onClick={handleLogout}>
       Cerrar sesión
     </Button>
   );

@@ -71,10 +71,10 @@ export default function BulkMarkupModal({
             </p>
           </div>
           <div className="flex justify-end gap-3">
-            <Button color="gray" onClick={onClose} disabled={isLoading}>
+            <Button color="secondary" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button color="warning" onClick={onConfirm} disabled={isLoading}>
+            <Button color="default" onClick={onConfirm} disabled={isLoading}>
               {isLoading ? 'Aplicando...' : 'Aplicar aumento'}
             </Button>
           </div>

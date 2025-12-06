@@ -1,5 +1,6 @@
 export interface CardData {
   id?: string;
+  oracle_id?: string;
   name: string;
   set_name: string;
   collector_number: string;

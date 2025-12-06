@@ -8,22 +8,17 @@ const themeBackoffice = createTheme({
     },
   },
   button: {
-    base: 'group relative flex items-center justify-center rounded-lg text-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+    base: 'group relative flex items-center justify-center rounded-lg text-center font-semibold transition-all duration-200 focus:outline-none focus:ring-0',
     disabled: 'cursor-not-allowed opacity-50',
     color: {
-      blue: 'bg-bo-primary text-white shadow-sm hover:bg-bo-primary-hover hover:shadow-md focus:ring-bo-primary',
-      light:
-        'border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 focus:ring-bo-primary',
-      gray: 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 focus:ring-slate-400',
-      failure:
-        'bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-md focus:ring-red-500',
-      success:
-        'bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 hover:shadow-md focus:ring-emerald-500',
-      warning:
-        'bg-bo-secondary text-white shadow-sm hover:bg-bo-secondary-dark hover:shadow-md focus:ring-bo-secondary',
-      purple:
-        'bg-bo-primary text-white shadow-sm hover:bg-bo-primary-hover hover:shadow-md focus:ring-bo-primary',
-      menu: 'w-full justify-start rounded-lg bg-transparent text-slate-700 font-medium hover:bg-slate-100 transition-all duration-200 focus:ring-bo-primary',
+      default:
+        'bg-bo-primary text-white shadow-sm hover:bg-bo-primary-hover hover:shadow-md',
+      secondary:
+        'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100',
+    },
+    outlineColor: {
+      default:
+        'border border-slate-900 text-slate-900 hover:bg-bo-primary hover:text-white hover:border-bo-primary',
     },
     size: {
       xs: 'px-2.5 py-1.5 text-xs',

@@ -183,7 +183,8 @@ export default function Users() {
                   <TableCell>
                     <Button
                       size="sm"
-                      color="light"
+                      color="default"
+                      outline
                       onClick={() => handleEdit(profile)}
                     >
                       <HiPencil className="mr-2 h-4 w-4" />
@@ -239,10 +240,15 @@ export default function Users() {
             </div>
           </div>
           <div className="mt-6 flex gap-2">
-            <Button onClick={handleSave} disabled={saving}>
+            <Button
+              color="default"
+              outline
+              onClick={handleSave}
+              disabled={saving}
+            >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
-            <Button color="gray" onClick={() => setEditModal(false)}>
+            <Button color="secondary" onClick={() => setEditModal(false)}>
               Cancelar
             </Button>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Button, Card } from 'flowbite-react';
+import { Button, Card, Select } from 'flowbite-react';
 import ToastNotification from '@/components/ToastNotification';
 import InventoryFilters from './InventoryFilters';
 import InventoryTable from './InventoryTable';
@@ -16,6 +16,7 @@ type CardOffer = {
   quantity: number;
   price_usd: number;
   markup_percent: number;
+  price_source: string;
   active: boolean;
   cards: {
     id: string;
@@ -33,7 +34,9 @@ export default function CardInventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -57,10 +60,12 @@ export default function CardInventory() {
   const [filterMinPrice, setFilterMinPrice] = useState<string>('');
   const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
 
-  const fetchOffers = async () => {
+  const fetchOffers = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cards?admin=true');
+      const res = await fetch(
+        `/api/cards?admin=true&page=${page}&pageSize=${itemsPerPage}`
+      );
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
       // Asegurar que markup_percent siempre tenga un valor
@@ -69,6 +74,9 @@ export default function CardInventory() {
         markup_percent: offer.markup_percent ?? 0,
       }));
       setOffers(offers);
+      setTotalItems(data.pagination?.total ?? 0);
+      setTotalPages(data.pagination?.totalPages ?? 0);
+      setCurrentPage(data.pagination?.page ?? 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -77,9 +85,9 @@ export default function CardInventory() {
   };
 
   useEffect(() => {
-    fetchOffers();
+    // Cargar ofertas y fx rate al montar (una sola vez)
+    fetchOffers(currentPage);
 
-    // Cargar fx rate
     (async () => {
       try {
         const res = await fetch(`/api/settings`);
@@ -89,11 +97,7 @@ export default function CardInventory() {
         // ignore
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    fetchOffers();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const handleUpdateStock = async (offerId: string, newQuantity: number) => {
     try {
@@ -271,9 +275,6 @@ export default function CardInventory() {
 
       if (!res.ok) throw new Error('Error al eliminar la carta');
 
-      // Actualizar estado local eliminando la oferta
-      setOffers((prev) => prev.filter((offer) => offer.id !== offerId));
-
       setToast({
         message: 'Carta eliminada correctamente',
         type: 'success',
@@ -281,6 +282,18 @@ export default function CardInventory() {
 
       setShowDeleteModal(false);
       setCardToDelete(null);
+
+      // Recargar datos y ajustar página si es necesario
+      const newTotal = totalItems - 1;
+      const maxPage = Math.ceil(newTotal / itemsPerPage);
+      const pageToLoad =
+        currentPage > maxPage ? Math.max(1, maxPage) : currentPage;
+
+      if (pageToLoad !== currentPage) {
+        setCurrentPage(pageToLoad);
+      } else {
+        await fetchOffers(currentPage);
+      }
     } catch (err) {
       console.error(err);
       setToast({
@@ -318,14 +331,11 @@ export default function CardInventory() {
         );
       }
 
-      // Actualizar estado local eliminando las ofertas
-      setOffers((prev) =>
-        prev.filter((offer) => !selectedOfferIds.has(offer.id))
-      );
+      const deletedCount = selectedOfferIds.size;
 
       setToast({
-        message: `${selectedOfferIds.size} carta${
-          selectedOfferIds.size > 1 ? 's eliminadas' : ' eliminada'
+        message: `${deletedCount} carta${
+          deletedCount > 1 ? 's eliminadas' : ' eliminada'
         } correctamente`,
         type: 'success',
       });
@@ -333,6 +343,18 @@ export default function CardInventory() {
       // Limpiar selección y cerrar modal
       setSelectedOfferIds(new Set());
       setShowBulkDeleteModal(false);
+
+      // Recargar datos y ajustar página si es necesario
+      const newTotal = totalItems - deletedCount;
+      const maxPage = Math.ceil(newTotal / itemsPerPage);
+      const pageToLoad =
+        currentPage > maxPage ? Math.max(1, maxPage) : currentPage;
+
+      if (pageToLoad !== currentPage) {
+        setCurrentPage(pageToLoad);
+      } else {
+        await fetchOffers(currentPage);
+      }
     } catch (err) {
       console.error(err);
       setToast({
@@ -511,6 +533,10 @@ export default function CardInventory() {
         aValue = a.foil;
         bValue = b.foil;
         break;
+      case 'price_source':
+        aValue = a.price_source.toLowerCase();
+        bValue = b.price_source.toLowerCase();
+        break;
       case 'active':
         aValue = a.active ? 1 : 0;
         bValue = b.active ? 1 : 0;
@@ -524,8 +550,8 @@ export default function CardInventory() {
     return 0;
   });
 
-  // Calcular paginación
-  const totalPages = Math.ceil(sortedOffers.length / itemsPerPage);
+  // Para paginación del lado del cliente solo en filtros locales
+  const clientTotalPages = Math.ceil(sortedOffers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = sortedOffers.slice(startIndex, endIndex);
@@ -594,7 +620,8 @@ export default function CardInventory() {
           Listado completo de todas las cartas en stock ({sortedOffers.length}{' '}
           {sortedOffers.length === 1 ? 'carta' : 'cartas'})
         </p>
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-3">
+          {/* Fila 1: Filtros */}
           <InventoryFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -604,10 +631,55 @@ export default function CardInventory() {
             setFilterMinPrice={setFilterMinPrice}
             filterMaxPrice={filterMaxPrice}
             setFilterMaxPrice={setFilterMaxPrice}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            onClearFilters={handleClearFilters}
           />
+
+          {/* Fila 2: Controles de paginación y acciones */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="itemsPerPage"
+                className="text-sm font-medium text-gray-700"
+              >
+                Mostrar:
+              </label>
+              <Select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="w-24"
+                sizing="sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {(searchQuery ||
+                filterSetCode ||
+                filterMinPrice ||
+                filterMaxPrice) && (
+                <Button
+                  size="sm"
+                  color="secondary"
+                  onClick={handleClearFilters}
+                >
+                  Limpiar filtros
+                </Button>
+              )}
+              <Button
+                size="sm"
+                color="secondary"
+                onClick={() => fetchOffers(currentPage)}
+                disabled={loading}
+                aria-label="Refrescar inventario"
+              >
+                {loading ? 'Refrescando...' : 'Refrescar'}
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Barra de acciones masivas */}
@@ -621,7 +693,8 @@ export default function CardInventory() {
               {hasInactiveSelected && (
                 <Button
                   size="sm"
-                  color="success"
+                  color="default"
+                  outline
                   onClick={() => handleBulkToggleActive(true)}
                   disabled={isBulkActionLoading}
                 >
@@ -633,7 +706,8 @@ export default function CardInventory() {
               {hasActiveSelected && (
                 <Button
                   size="sm"
-                  color="failure"
+                  color="default"
+                  outline
                   onClick={() => handleBulkToggleActive(false)}
                   disabled={isBulkActionLoading}
                 >
@@ -644,7 +718,8 @@ export default function CardInventory() {
               )}
               <Button
                 size="sm"
-                color="warning"
+                color="default"
+                outline
                 onClick={handleOpenBulkMarkupModal}
                 disabled={isBulkActionLoading}
               >
@@ -652,7 +727,8 @@ export default function CardInventory() {
               </Button>
               <Button
                 size="sm"
-                color="failure"
+                color="default"
+                outline
                 onClick={() => setShowBulkDeleteModal(true)}
                 disabled={isBulkActionLoading}
               >
@@ -660,7 +736,7 @@ export default function CardInventory() {
               </Button>
               <Button
                 size="sm"
-                color="gray"
+                color="secondary"
                 onClick={() => setSelectedOfferIds(new Set())}
               >
                 Cancelar
@@ -673,7 +749,11 @@ export default function CardInventory() {
       <InventoryTable
         items={currentItems}
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={
+          searchQuery || filterSetCode || filterMinPrice || filterMaxPrice
+            ? clientTotalPages
+            : totalPages
+        }
         onPageChange={onPageChange}
         selectedOfferIds={selectedOfferIds}
         onSelectOffer={handleSelectOffer}
