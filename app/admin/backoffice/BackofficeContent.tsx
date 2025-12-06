@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import CardSearch from './CardSearch';
 import CardInventory from './CardInventory';
-import MTGSettings from './MTGSettings';
 import PokemonSettings from './PokemonSettings';
 import GlobalSettings from './GlobalSettings';
 import Users from './Users';
@@ -35,7 +34,6 @@ export default function BackofficeContent() {
         {activeSection === 'users' && <Users />}
         {activeSection === 'mtg-add' && <CardSearch />}
         {activeSection === 'mtg-inventory' && <CardInventory />}
-        {activeSection === 'mtg-settings' && <MTGSettings />}
         {activeSection === 'pokemon-add' && (
           <div className="rounded-lg border border-slate-200 bg-white p-6">
             <p className="text-slate-600">

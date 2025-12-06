@@ -4,7 +4,8 @@ import { Button, Card } from 'flowbite-react';
 import ToastNotification from '@/components/ToastNotification';
 import InventoryFilters from './InventoryFilters';
 import InventoryTable from './InventoryTable';
-import { TextInput } from 'flowbite-react';
+import DeleteCardModal from './DeleteCardModal';
+import BulkMarkupModal from './BulkMarkupModal';
 
 type CardOffer = {
   id: string;
@@ -45,6 +46,9 @@ export default function CardInventory() {
   const [tempMarkupValue, setTempMarkupValue] = useState<number>(0);
   const [showBulkMarkupModal, setShowBulkMarkupModal] = useState(false);
   const [bulkMarkupValue, setBulkMarkupValue] = useState<number>(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<string | null>(null);
 
   // Estados para filtros y ordenamiento
   const [sortField, setSortField] = useState<string>('');
@@ -252,6 +256,88 @@ export default function CardInventory() {
       setToast({
         message:
           err instanceof Error ? err.message : 'Error al actualizar aumentos',
+        type: 'error',
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleDeleteCard = async (offerId: string) => {
+    try {
+      const res = await fetch(`/api/cards/${offerId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Error al eliminar la carta');
+
+      // Actualizar estado local eliminando la oferta
+      setOffers((prev) => prev.filter((offer) => offer.id !== offerId));
+
+      setToast({
+        message: 'Carta eliminada correctamente',
+        type: 'success',
+      });
+
+      setShowDeleteModal(false);
+      setCardToDelete(null);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        message:
+          err instanceof Error ? err.message : 'Error al eliminar la carta',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedOfferIds.size === 0) {
+      setToast({
+        message: 'Selecciona al menos una carta',
+        type: 'error',
+      });
+      return;
+    }
+
+    setIsBulkActionLoading(true);
+
+    try {
+      const deletePromises = Array.from(selectedOfferIds).map((offerId) =>
+        fetch(`/api/cards/${offerId}`, {
+          method: 'DELETE',
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const failedCount = results.filter((res) => !res.ok).length;
+
+      if (failedCount > 0) {
+        throw new Error(
+          `${failedCount} carta${failedCount > 1 ? 's' : ''} no se pudieron eliminar`
+        );
+      }
+
+      // Actualizar estado local eliminando las ofertas
+      setOffers((prev) =>
+        prev.filter((offer) => !selectedOfferIds.has(offer.id))
+      );
+
+      setToast({
+        message: `${selectedOfferIds.size} carta${
+          selectedOfferIds.size > 1 ? 's eliminadas' : ' eliminada'
+        } correctamente`,
+        type: 'success',
+      });
+
+      // Limpiar selección y cerrar modal
+      setSelectedOfferIds(new Set());
+      setShowBulkDeleteModal(false);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        message:
+          err instanceof Error ? err.message : 'Error al eliminar cartas',
         type: 'error',
       });
     } finally {
@@ -566,6 +652,14 @@ export default function CardInventory() {
               </Button>
               <Button
                 size="sm"
+                color="failure"
+                onClick={() => setShowBulkDeleteModal(true)}
+                disabled={isBulkActionLoading}
+              >
+                Eliminar seleccionadas
+              </Button>
+              <Button
+                size="sm"
                 color="gray"
                 onClick={() => setSelectedOfferIds(new Set())}
               >
@@ -587,6 +681,10 @@ export default function CardInventory() {
         onUpdateStock={handleUpdateStock}
         onToggleActive={handleToggleActive}
         onStartEditMarkup={handleStartEditMarkup}
+        onDeleteCard={(offerId) => {
+          setCardToDelete(offerId);
+          setShowDeleteModal(true);
+        }}
         editingMarkupId={editingMarkupId}
         tempMarkupValue={tempMarkupValue}
         setTempMarkupValue={setTempMarkupValue}
@@ -608,70 +706,35 @@ export default function CardInventory() {
         />
       )}
 
-      {/* Modal de ajuste masivo de aumento */}
-      {showBulkMarkupModal && (
-        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Ajustar aumento de precio
-            </h3>
-            <p className="mb-4 text-sm text-gray-600">
-              Aplicar aumento a {selectedOfferIds.size} carta
-              {selectedOfferIds.size > 1 ? 's seleccionadas' : ' seleccionada'}
-            </p>
-            <div className="mb-6">
-              <label
-                htmlFor="bulkMarkup"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Porcentaje de aumento (0-100%)
-              </label>
-              <TextInput
-                id="bulkMarkup"
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={bulkMarkupValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '') {
-                    setBulkMarkupValue(0);
-                    return;
-                  }
-                  const numValue = parseFloat(value);
-                  if (!isNaN(numValue)) {
-                    const clamped = Math.max(0, Math.min(100, numValue));
-                    const rounded = Math.round(clamped * 100) / 100;
-                    setBulkMarkupValue(rounded);
-                  }
-                }}
-                placeholder="Ejemplo: 15"
-                autoFocus
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                El aumento se aplicará sobre el precio base en USD
-              </p>
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button
-                color="gray"
-                onClick={() => setShowBulkMarkupModal(false)}
-                disabled={isBulkActionLoading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                color="warning"
-                onClick={handleBulkUpdateMarkup}
-                disabled={isBulkActionLoading}
-              >
-                {isBulkActionLoading ? 'Aplicando...' : 'Aplicar aumento'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BulkMarkupModal
+        show={showBulkMarkupModal}
+        onClose={() => setShowBulkMarkupModal(false)}
+        onConfirm={handleBulkUpdateMarkup}
+        count={selectedOfferIds.size}
+        value={bulkMarkupValue}
+        onChange={setBulkMarkupValue}
+        isLoading={isBulkActionLoading}
+        popup={true}
+      />
+
+      <DeleteCardModal
+        show={showDeleteModal && cardToDelete !== null}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setCardToDelete(null);
+        }}
+        onConfirm={() => cardToDelete && handleDeleteCard(cardToDelete)}
+        popup={true}
+      />
+
+      <DeleteCardModal
+        show={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleBulkDelete}
+        count={selectedOfferIds.size}
+        isLoading={isBulkActionLoading}
+        popup={true}
+      />
     </Card>
   );
 }

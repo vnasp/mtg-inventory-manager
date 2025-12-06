@@ -1,7 +1,7 @@
 /**
  * Admin Supabase client using SERVICE_ROLE_KEY
  *
- * ⚠️ ADVERTENCIA DE SEGURIDAD ⚠️
+ *  ADVERTENCIA DE SEGURIDAD
  * Este cliente usa la SERVICE_ROLE_KEY que tiene permisos de administrador.
  * SOLO debe usarse en:
  * - Route Handlers (/app/api/*)
