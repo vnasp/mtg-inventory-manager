@@ -16,6 +16,7 @@ type CardOffer = {
   quantity: number;
   price_usd: number;
   markup_percent: number;
+  price_source: string;
   active: boolean;
   cards: {
     id: string;
@@ -274,9 +275,6 @@ export default function CardInventory() {
 
       if (!res.ok) throw new Error('Error al eliminar la carta');
 
-      // Actualizar estado local eliminando la oferta
-      setOffers((prev) => prev.filter((offer) => offer.id !== offerId));
-
       setToast({
         message: 'Carta eliminada correctamente',
         type: 'success',
@@ -284,6 +282,18 @@ export default function CardInventory() {
 
       setShowDeleteModal(false);
       setCardToDelete(null);
+
+      // Recargar datos y ajustar página si es necesario
+      const newTotal = totalItems - 1;
+      const maxPage = Math.ceil(newTotal / itemsPerPage);
+      const pageToLoad =
+        currentPage > maxPage ? Math.max(1, maxPage) : currentPage;
+
+      if (pageToLoad !== currentPage) {
+        setCurrentPage(pageToLoad);
+      } else {
+        await fetchOffers(currentPage);
+      }
     } catch (err) {
       console.error(err);
       setToast({
@@ -321,14 +331,11 @@ export default function CardInventory() {
         );
       }
 
-      // Actualizar estado local eliminando las ofertas
-      setOffers((prev) =>
-        prev.filter((offer) => !selectedOfferIds.has(offer.id))
-      );
+      const deletedCount = selectedOfferIds.size;
 
       setToast({
-        message: `${selectedOfferIds.size} carta${
-          selectedOfferIds.size > 1 ? 's eliminadas' : ' eliminada'
+        message: `${deletedCount} carta${
+          deletedCount > 1 ? 's eliminadas' : ' eliminada'
         } correctamente`,
         type: 'success',
       });
@@ -336,6 +343,18 @@ export default function CardInventory() {
       // Limpiar selección y cerrar modal
       setSelectedOfferIds(new Set());
       setShowBulkDeleteModal(false);
+
+      // Recargar datos y ajustar página si es necesario
+      const newTotal = totalItems - deletedCount;
+      const maxPage = Math.ceil(newTotal / itemsPerPage);
+      const pageToLoad =
+        currentPage > maxPage ? Math.max(1, maxPage) : currentPage;
+
+      if (pageToLoad !== currentPage) {
+        setCurrentPage(pageToLoad);
+      } else {
+        await fetchOffers(currentPage);
+      }
     } catch (err) {
       console.error(err);
       setToast({
@@ -513,6 +532,10 @@ export default function CardInventory() {
       case 'foil':
         aValue = a.foil;
         bValue = b.foil;
+        break;
+      case 'price_source':
+        aValue = a.price_source.toLowerCase();
+        bValue = b.price_source.toLowerCase();
         break;
       case 'active':
         aValue = a.active ? 1 : 0;

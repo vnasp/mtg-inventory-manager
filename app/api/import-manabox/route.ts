@@ -110,7 +110,7 @@ export async function POST(req: Request) {
             .update({
               quantity: newQuantity,
               price_usd: priceUsd,
-              price_source: 'manual',
+              price_source: 'manabox_csv',
               price_updated_at: now,
               variant_sku: variantSku,
               active: newQuantity > 0,
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
             condition: condition,
             quantity,
             price_usd: priceUsd,
-            price_source: 'manual',
+            price_source: 'manabox_csv',
             price_updated_at: now,
             variant_sku: variantSku,
             active: quantity > 0,

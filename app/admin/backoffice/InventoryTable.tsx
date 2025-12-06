@@ -14,6 +14,72 @@ import {
 import Image from 'next/image';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
+// Helper para mapear foil a siglas
+const mapFoilToAbbrev = (foil: string): string => {
+  switch (foil) {
+    case 'nonfoil':
+      return 'NF';
+    case 'foil':
+      return 'F';
+    case 'etched':
+      return 'E';
+    default:
+      return foil.toUpperCase();
+  }
+};
+
+// Helper para mapear price_source a siglas
+const mapPriceSourceToAbbrev = (source: string): string => {
+  switch (source) {
+    case 'scryfall':
+      return 'SF';
+    case 'cardkingdom':
+      return 'CK';
+    case 'manabox_csv':
+      return 'MB';
+    case 'manual':
+      return 'MAN';
+    default:
+      return source.substring(0, 3).toUpperCase();
+  }
+};
+
+// Helper para obtener el nombre completo de la fuente
+const getPriceSourceFullName = (source: string): string => {
+  switch (source) {
+    case 'scryfall':
+      return 'Scryfall';
+    case 'cardkingdom':
+      return 'Card Kingdom';
+    case 'manabox_csv':
+      return 'Manabox CSV';
+    case 'manual':
+      return 'Manual';
+    default:
+      return source;
+  }
+};
+
+// Helper para mapear condición a siglas
+const mapConditionToAbbrev = (condition: string): string => {
+  switch (condition) {
+    case 'mint':
+      return 'M';
+    case 'near_mint':
+      return 'NM';
+    case 'lightly_played':
+      return 'LP';
+    case 'moderately_played':
+      return 'MP';
+    case 'heavily_played':
+      return 'HP';
+    case 'damaged':
+      return 'D';
+    default:
+      return condition.substring(0, 2).toUpperCase();
+  }
+};
+
 type CardOffer = {
   id: string;
   card_id: string;
@@ -23,6 +89,7 @@ type CardOffer = {
   quantity: number;
   price_usd: number;
   markup_percent: number;
+  price_source: string;
   active: boolean;
   cards: {
     id: string;
@@ -190,6 +257,12 @@ export default function InventoryTable({
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              onClick={() => onSort('price_source')}
+            >
+              Fuente <SortIcon field="price_source" />
+            </TableHeadCell>
+            <TableHeadCell
+              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
               onClick={() => onSort('stock')}
             >
               Stock <SortIcon field="stock" />
@@ -240,13 +313,19 @@ export default function InventoryTable({
                   {offer.cards.collector_number}
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-800">
-                    {mapFoilToSpanish(offer.foil)}
+                  <span
+                    className="cursor-help rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-800"
+                    title={mapFoilToSpanish(offer.foil)}
+                  >
+                    {mapFoilToAbbrev(offer.foil)}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
-                    {mapConditionToSpanish(offer.condition)}
+                  <span
+                    className="cursor-help rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800"
+                    title={mapConditionToSpanish(offer.condition)}
+                  >
+                    {mapConditionToAbbrev(offer.condition)}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
@@ -355,6 +434,14 @@ export default function InventoryTable({
                       </button>
                     </div>
                   )}
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <span
+                    className="cursor-help rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
+                    title={getPriceSourceFullName(offer.price_source)}
+                  >
+                    {mapPriceSourceToAbbrev(offer.price_source)}
+                  </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
                   <TextInput
