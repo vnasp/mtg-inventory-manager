@@ -108,3 +108,36 @@ export async function PATCH(
 export async function GET() {
   return NextResponse.json({ error: 'method not allowed' }, { status: 405 });
 }
+
+export async function DELETE(
+  req: NextRequest,
+  context: { params: { id: string } | Promise<{ id: string }> }
+) {
+  try {
+    const params = await (context.params as
+      | Promise<{ id: string }>
+      | { id: string });
+    const offerId = (params as any).id;
+
+    // Cliente admin con service role key (solo servidor)
+    const supabase = createAdminClient();
+
+    // Eliminar la oferta de carta
+    const { error } = await supabase
+      .from('card_offers')
+      .delete()
+      .eq('id', offerId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: 'Carta eliminada' });
+  } catch (error) {
+    console.error('DELETE /api/cards/[id] error', error);
+    return NextResponse.json(
+      { error: (error as any)?.message ?? String(error) },
+      { status: 500 }
+    );
+  }
+}
