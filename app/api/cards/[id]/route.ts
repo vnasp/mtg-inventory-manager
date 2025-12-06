@@ -122,6 +122,13 @@ export async function DELETE(
     // Cliente admin con service role key (solo servidor)
     const supabase = createAdminClient();
 
+    // Primero obtener el card_id antes de eliminar
+    const { data: offer } = await supabase
+      .from('card_offers')
+      .select('card_id')
+      .eq('id', offerId)
+      .single();
+
     // Eliminar la oferta de carta
     const { error } = await supabase
       .from('card_offers')
@@ -130,6 +137,21 @@ export async function DELETE(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Si tenemos el card_id, verificar si quedan más ofertas para esa carta
+    if (offer?.card_id) {
+      const { data: remainingOffers } = await supabase
+        .from('card_offers')
+        .select('id')
+        .eq('card_id', offer.card_id)
+        .limit(1);
+
+      // Si no quedan ofertas, eliminar la carta también
+      if (!remainingOffers || remainingOffers.length === 0) {
+        await supabase.from('cards').delete().eq('id', offer.card_id);
+        console.log(`Deleted orphaned card ${offer.card_id}`);
+      }
     }
 
     return NextResponse.json({ ok: true, message: 'Carta eliminada' });

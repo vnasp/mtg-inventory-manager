@@ -22,6 +22,7 @@ export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C'; // White, Blue, Black
 export interface Card {
   id: number;
   scryfall_id?: string | null; // UUID en texto
+  mtgjson_uuid?: string | null; // UUID de MTGJSON para match con AllPricesToday
   name: string;
   set_code: string; // ej: 'm21'
   set_name: string; // ej: 'Core Set 2021'

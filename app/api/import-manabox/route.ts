@@ -262,6 +262,26 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
 
     const now = new Date().toISOString();
 
+    // 2.5) Intentar obtener mtgjson_uuid
+    let mtgjson_uuid: string | null = null;
+    try {
+      const { data: uuidData, error: uuidError } = await supabase
+        .from('cardidentifiers')
+        .select('uuid')
+        .eq('scryfallid', c.id)
+        .single();
+
+      if (uuidError) {
+        console.warn('Error fetching MTGJSON UUID:', uuidError);
+      }
+
+      if (uuidData?.uuid) {
+        mtgjson_uuid = uuidData.uuid;
+      }
+    } catch (e) {
+      console.warn('Could not fetch MTGJSON UUID for import:', e);
+    }
+
     // 3) Insertar nueva carta
     const { data: inserted, error: insertError } = await supabase
       .from('cards')
@@ -274,6 +294,7 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
         type_line: c.type_line || null,
         image_url: c.image_uris?.normal || null,
         json_raw: c,
+        mtgjson_uuid,
         has_nonfoil: c.nonfoil || false,
         has_foil: c.foil || false,
         has_etched: c.finishes?.includes('etched') || false,
