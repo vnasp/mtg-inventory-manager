@@ -190,8 +190,8 @@ export default function CardSearch() {
     let successCount = 0;
 
     try {
-      // Procesar en lotes de 10 para mejor rendimiento
-      const batchSize = 10;
+      // Procesar en lotes de 50 para mejor rendimiento
+      const batchSize = 100;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
 
