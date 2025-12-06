@@ -55,14 +55,15 @@ export default function CardSearch() {
       const data = (await res.json()) as CardData;
       setCard(data);
 
-      // Obtener precios de Card Kingdom usando scryfall_id
+      // Obtener precios de Card Kingdom usando scryfall_id y oracle_id
       const scryfallId = (data as any).id;
-      if (scryfallId) {
+      const scryfallOracleId = (data as any).oracle_id;
+      if (scryfallId || scryfallOracleId) {
         try {
           const pricesRes = await fetch('/api/cardkingdom-prices', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scryfallId }),
+            body: JSON.stringify({ scryfallId, scryfallOracleId }),
           });
           if (pricesRes.ok) {
             const pricesData = await pricesRes.json();
@@ -129,11 +130,13 @@ export default function CardSearch() {
     (async () => {
       try {
         const scryfall_id = (card as any).id ?? null;
+        const scryfall_oracle_id = (card as any).oracle_id ?? null;
         // Determine language from Scryfall data when available (card.lang)
         const detectedLang =
           (card as any)?.lang ?? (card as any)?._requested_language ?? null;
         const payload = {
           scryfall_id,
+          scryfall_oracle_id,
           name: card.name,
           set_code: setName,
           set_name: card.set_name,

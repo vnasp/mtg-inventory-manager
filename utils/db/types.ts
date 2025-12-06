@@ -21,7 +21,8 @@ export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C'; // White, Blue, Black
 // Tabla: cards
 export interface Card {
   id: number;
-  scryfall_id?: string | null; // UUID en texto
+  scryfall_id?: string | null; // UUID en texto (identifica la impresión específica)
+  scryfall_oracle_id?: string | null; // Oracle ID de Scryfall (identifica la carta a través de sets)
   mtgjson_uuid?: string | null; // UUID de MTGJSON para match con AllPricesToday
   name: string;
   set_code: string; // ej: 'm21'

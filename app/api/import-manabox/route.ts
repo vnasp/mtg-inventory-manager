@@ -265,11 +265,17 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
     // 2.5) Intentar obtener mtgjson_uuid
     let mtgjson_uuid: string | null = null;
     try {
-      const { data: uuidData, error: uuidError } = await supabase
-        .from('cardidentifiers')
-        .select('uuid')
-        .eq('scryfallid', c.id)
-        .single();
+      let query = supabase.from('cardidentifiers').select('uuid');
+
+      // Usar ambos IDs para una búsqueda más precisa
+      if (c.id) {
+        query = query.eq('scryfallid', c.id);
+      }
+      if (c.oracle_id) {
+        query = query.eq('scryfalloracleid', c.oracle_id);
+      }
+
+      const { data: uuidData, error: uuidError } = await query.limit(1).single();
 
       if (uuidError) {
         console.warn('Error fetching MTGJSON UUID:', uuidError);
@@ -287,6 +293,7 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
       .from('cards')
       .insert({
         scryfall_id: c.id,
+        scryfall_oracle_id: c.oracle_id || null,
         name: c.name,
         set_code: c.set,
         set_name: c.set_name,

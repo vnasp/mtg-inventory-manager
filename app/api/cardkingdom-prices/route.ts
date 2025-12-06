@@ -4,11 +4,11 @@ import { createAdminClient } from '@/utils/supabase/admin';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { scryfallId } = body;
+    const { scryfallId, scryfallOracleId } = body;
 
-    if (!scryfallId) {
+    if (!scryfallId && !scryfallOracleId) {
       return NextResponse.json(
-        { error: 'scryfallId es requerido' },
+        { error: 'scryfallId o scryfallOracleId es requerido' },
         { status: 400 }
       );
     }
@@ -16,11 +16,17 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
 
     // 1. Obtener mtgjson_uuid desde cardidentifiers
-    const { data: cardIdData, error: cardIdError } = await supabase
-      .from('cardidentifiers')
-      .select('uuid')
-      .eq('scryfallid', scryfallId)
-      .single();
+    let query = supabase.from('cardidentifiers').select('uuid');
+
+    // Usar ambos IDs para una búsqueda más precisa
+    if (scryfallId) {
+      query = query.eq('scryfallid', scryfallId);
+    }
+    if (scryfallOracleId) {
+      query = query.eq('scryfalloracleid', scryfallOracleId);
+    }
+
+    const { data: cardIdData, error: cardIdError } = await query.limit(1).single();
 
     if (cardIdError || !cardIdData?.uuid) {
       return NextResponse.json(
