@@ -34,7 +34,7 @@ export default function CardInventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [toast, setToast] = useState<{
@@ -63,9 +63,19 @@ export default function CardInventory() {
   const fetchOffers = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/cards?admin=true&page=${page}&pageSize=${itemsPerPage}`
-      );
+      const params = new URLSearchParams({
+        admin: 'true',
+        page: String(page),
+        pageSize: String(itemsPerPage),
+      });
+
+      // Agregar parámetros de ordenamiento si existen
+      if (sortField) {
+        params.append('sortField', sortField);
+        params.append('sortDirection', sortDirection);
+      }
+
+      const res = await fetch(`/api/cards?${params.toString()}`);
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
       // Asegurar que markup_percent siempre tenga un valor
@@ -90,14 +100,14 @@ export default function CardInventory() {
 
     (async () => {
       try {
-        const res = await fetch(`/api/settings`);
+        const res = await fetch(`/api/settings?game=mtg`);
         const body = await res.json().catch(() => ({}));
-        if (body?.rate) setFxRate(Number(body.rate));
+        if (body?.fx_usdclp?.rate) setFxRate(Number(body.fx_usdclp.rate));
       } catch (e) {
         // ignore
       }
     })();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, sortField, sortDirection]);
 
   const handleUpdateStock = async (offerId: string, newQuantity: number) => {
     try {
@@ -501,54 +511,8 @@ export default function CardInventory() {
       (filterMaxPrice === '' || offer.price_usd <= parseFloat(filterMaxPrice))
   );
 
-  // Aplicar ordenamiento
-  const sortedOffers = [...filteredOffers].sort((a, b) => {
-    if (!sortField) return 0;
-
-    let aValue: any;
-    let bValue: any;
-
-    switch (sortField) {
-      case 'name':
-        aValue = a.cards.name.toLowerCase();
-        bValue = b.cards.name.toLowerCase();
-        break;
-      case 'set':
-        aValue = a.cards.set_code.toLowerCase();
-        bValue = b.cards.set_code.toLowerCase();
-        break;
-      case 'price':
-        aValue = a.price_usd * (1 + (a.markup_percent || 0) / 100);
-        bValue = b.price_usd * (1 + (b.markup_percent || 0) / 100);
-        break;
-      case 'stock':
-        aValue = a.quantity;
-        bValue = b.quantity;
-        break;
-      case 'condition':
-        aValue = a.condition;
-        bValue = b.condition;
-        break;
-      case 'foil':
-        aValue = a.foil;
-        bValue = b.foil;
-        break;
-      case 'price_source':
-        aValue = a.price_source.toLowerCase();
-        bValue = b.price_source.toLowerCase();
-        break;
-      case 'active':
-        aValue = a.active ? 1 : 0;
-        bValue = b.active ? 1 : 0;
-        break;
-      default:
-        return 0;
-    }
-
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Ya no necesitamos ordenar del lado del cliente porque el API lo hace
+  const sortedOffers = filteredOffers;
 
   // Para paginación del lado del cliente solo en filtros locales
   const clientTotalPages = Math.ceil(sortedOffers.length / itemsPerPage);
@@ -590,6 +554,8 @@ export default function CardInventory() {
       setSortField(field);
       setSortDirection('asc');
     }
+    // Resetear a la primera página al cambiar el orden
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -603,14 +569,6 @@ export default function CardInventory() {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  if (loading) {
-    return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-        <p className="text-slate-700">Cargando inventario...</p>
-      </div>
-    );
-  }
 
   return (
     <Card>
@@ -776,6 +734,7 @@ export default function CardInventory() {
         onSort={handleSort}
         hasResults={filteredOffers.length > 0}
         hasFilteredResults={sortedOffers.length > 0}
+        loading={loading}
       />
 
       {toast && (
