@@ -275,7 +275,9 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
         query = query.eq('scryfalloracleid', c.oracle_id);
       }
 
-      const { data: uuidData, error: uuidError } = await query.limit(1).single();
+      const { data: uuidData, error: uuidError } = await query
+        .limit(1)
+        .single();
 
       if (uuidError) {
         console.warn('Error fetching MTGJSON UUID:', uuidError);

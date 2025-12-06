@@ -33,7 +33,9 @@ export default function CardInventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -57,10 +59,12 @@ export default function CardInventory() {
   const [filterMinPrice, setFilterMinPrice] = useState<string>('');
   const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
 
-  const fetchOffers = async () => {
+  const fetchOffers = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cards?admin=true');
+      const res = await fetch(
+        `/api/cards?admin=true&page=${page}&pageSize=${itemsPerPage}`
+      );
       if (!res.ok) throw new Error('Error al cargar inventario');
       const data = await res.json();
       // Asegurar que markup_percent siempre tenga un valor
@@ -69,6 +73,9 @@ export default function CardInventory() {
         markup_percent: offer.markup_percent ?? 0,
       }));
       setOffers(offers);
+      setTotalItems(data.pagination?.total ?? 0);
+      setTotalPages(data.pagination?.totalPages ?? 0);
+      setCurrentPage(data.pagination?.page ?? 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,7 +85,7 @@ export default function CardInventory() {
 
   useEffect(() => {
     // Cargar ofertas y fx rate al montar (una sola vez)
-    fetchOffers();
+    fetchOffers(currentPage);
 
     (async () => {
       try {
@@ -89,7 +96,7 @@ export default function CardInventory() {
         // ignore
       }
     })();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const handleUpdateStock = async (offerId: string, newQuantity: number) => {
     try {
@@ -520,8 +527,8 @@ export default function CardInventory() {
     return 0;
   });
 
-  // Calcular paginación
-  const totalPages = Math.ceil(sortedOffers.length / itemsPerPage);
+  // Para paginación del lado del cliente solo en filtros locales
+  const clientTotalPages = Math.ceil(sortedOffers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = sortedOffers.slice(startIndex, endIndex);
@@ -642,7 +649,7 @@ export default function CardInventory() {
               <Button
                 size="sm"
                 color="secondary"
-                onClick={fetchOffers}
+                onClick={() => fetchOffers(currentPage)}
                 disabled={loading}
                 aria-label="Refrescar inventario"
               >
@@ -719,7 +726,11 @@ export default function CardInventory() {
       <InventoryTable
         items={currentItems}
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={
+          searchQuery || filterSetCode || filterMinPrice || filterMaxPrice
+            ? clientTotalPages
+            : totalPages
+        }
         onPageChange={onPageChange}
         selectedOfferIds={selectedOfferIds}
         onSelectOffer={handleSelectOffer}

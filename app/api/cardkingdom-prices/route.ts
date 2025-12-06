@@ -26,7 +26,9 @@ export async function POST(req: Request) {
       query = query.eq('scryfalloracleid', scryfallOracleId);
     }
 
-    const { data: cardIdData, error: cardIdError } = await query.limit(1).single();
+    const { data: cardIdData, error: cardIdError } = await query
+      .limit(1)
+      .single();
 
     if (cardIdError || !cardIdData?.uuid) {
       return NextResponse.json(
