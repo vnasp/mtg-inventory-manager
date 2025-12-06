@@ -13,10 +13,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Buscar en la tabla cardidentifiers de MTGJSON
+    // Buscar en la tabla mtg_cardidentifiers de MTGJSON
     const supabase = createAdminClient();
 
-    let query = supabase.from('cardidentifiers').select('uuid');
+    let query = supabase.from('mtg_cardidentifiers').select('uuid');
 
     // Usar ambos IDs para una búsqueda más precisa
     if (scryfallId) {
