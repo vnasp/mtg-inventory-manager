@@ -338,6 +338,8 @@ export async function GET(req: Request) {
     const admin = url.searchParams.get('admin') === 'true';
     const page = parseInt(url.searchParams.get('page') ?? '1');
     const pageSize = parseInt(url.searchParams.get('pageSize') ?? '50');
+    const sortField = url.searchParams.get('sortField') ?? '';
+    const sortDirection = url.searchParams.get('sortDirection') ?? 'asc';
 
     // Validar parámetros de paginación
     const validPage = Math.max(1, page);
@@ -352,9 +354,44 @@ export async function GET(req: Request) {
       .select(
         `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, scryfall_oracle_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`,
         { count: 'exact' }
-      )
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      );
+
+    // Aplicar ordenamiento según el campo solicitado
+    const ascending = sortDirection === 'asc';
+    if (sortField) {
+      switch (sortField) {
+        case 'name':
+          query = query.order('cards(name)', { ascending });
+          break;
+        case 'set':
+          query = query.order('cards(set_code)', { ascending });
+          break;
+        case 'price':
+          query = query.order('price_usd', { ascending });
+          break;
+        case 'stock':
+          query = query.order('quantity', { ascending });
+          break;
+        case 'condition':
+          query = query.order('condition', { ascending });
+          break;
+        case 'foil':
+          query = query.order('foil', { ascending });
+          break;
+        case 'price_source':
+          query = query.order('price_source', { ascending });
+          break;
+        case 'active':
+          query = query.order('active', { ascending });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+
+    query = query.range(from, to);
 
     // Si NO es admin (frontoffice), filtrar solo activas
     if (!admin) {
