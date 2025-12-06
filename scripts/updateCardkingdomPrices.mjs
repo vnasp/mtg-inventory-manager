@@ -14,18 +14,18 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-function getLatestRetail(retailObj) {
-  if (!retailObj) return null;
-  // retailObj = { "YYYY-MM-DD": price, ... } → tomamos la fecha más reciente
+function getLatestFromDateMap(dateMap) {
+  if (!dateMap) return null;
   let latestDate = null;
   let latestValue = null;
 
-  for (const [date, value] of Object.entries(retailObj)) {
+  for (const [date, value] of Object.entries(dateMap)) {
     if (!latestDate || date > latestDate) {
       latestDate = date;
       latestValue = value;
     }
   }
+
   return latestValue;
 }
 
@@ -73,12 +73,13 @@ async function main() {
   console.log('Procesando JSON...');
   for (const [uuid, entry] of Object.entries(data)) {
     const paper = entry.paper || {};
-    // MTGJson suele usar cardkingdom y cardkingdom_foil como vendors separados
-    const ckNonfoil = paper.cardkingdom || null;
-    const ckFoil = paper.cardkingdom_foil || null;
+    const ck = paper.cardkingdom || null; // vendor cardkingdom
 
-    const nonfoilPrice = getLatestRetail(ckNonfoil?.retail);
-    const foilPrice = getLatestRetail(ckFoil?.retail);
+    // MTGJson: retail es PricePoints (normal/foil/etched)
+    const retail = ck?.retail || null;
+
+    const nonfoilPrice = retail ? getLatestFromDateMap(retail.normal) : null;
+    const foilPrice = retail ? getLatestFromDateMap(retail.foil) : null;
 
     if (nonfoilPrice == null && foilPrice == null) continue;
 
