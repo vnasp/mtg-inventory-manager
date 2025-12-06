@@ -45,6 +45,7 @@ type InventoryTableProps = {
   onUpdateStock: (offerId: string, newQuantity: number) => void;
   onToggleActive: (offerId: string, currentActive: boolean) => void;
   onStartEditMarkup: (offerId: string, currentMarkup: number) => void;
+  onDeleteCard: (offerId: string) => void;
   editingMarkupId: string | null;
   tempMarkupValue: number;
   setTempMarkupValue: (value: number) => void;
@@ -69,6 +70,7 @@ export default function InventoryTable({
   onUpdateStock,
   onToggleActive,
   onStartEditMarkup,
+  onDeleteCard,
   editingMarkupId,
   tempMarkupValue,
   setTempMarkupValue,
@@ -198,6 +200,7 @@ export default function InventoryTable({
             >
               Activa <SortIcon field="active" />
             </TableHeadCell>
+            <TableHeadCell className="px-6 py-3">Acciones</TableHeadCell>
           </TableRow>
         </TableHead>
         <TableBody className="divide-y divide-gray-200">
@@ -380,6 +383,28 @@ export default function InventoryTable({
                       {offer.active ? 'Activa' : 'Inactiva'}
                     </span>
                   </label>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <Button
+                    size="xs"
+                    color="failure"
+                    onClick={() => onDeleteCard(offer.id)}
+                    title="Eliminar carta"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </Button>
                 </TableCell>
               </TableRow>
             );

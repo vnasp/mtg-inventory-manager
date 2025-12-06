@@ -1,0 +1,11 @@
+# Dependencies
+node_modules
+.next
+out
+build
+dist
+
+# Other large files
+*.log
+.env
+.env.local
