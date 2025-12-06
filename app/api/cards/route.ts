@@ -68,6 +68,34 @@ export async function POST(req: Request) {
       collector_number
     ).toLowerCase()}`;
 
+    // Intentar obtener mtgjson_uuid
+    let mtgjson_uuid: string | null = null;
+    try {
+      if (scryfall_id) {
+        const supabaseForUuid = createAdminClient();
+        const { data: uuidData, error: uuidError } = await supabaseForUuid
+          .from('cardidentifiers')
+          .select('uuid')
+          .eq('scryfallid', scryfall_id)
+          .single();
+
+        if (uuidError) {
+          console.warn('Error fetching MTGJSON UUID:', uuidError);
+        }
+
+        if (uuidData?.uuid) {
+          mtgjson_uuid = uuidData.uuid;
+          console.log(
+            `Found MTGJSON UUID for ${name} (Scryfall: ${scryfall_id}):`,
+            mtgjson_uuid
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch MTGJSON UUID:', e);
+      // No fallar si no se puede obtener el UUID
+    }
+
     if (cardId) {
       // update
       const upd = await supabase
@@ -87,6 +115,7 @@ export async function POST(req: Request) {
             null,
           image_url,
           json_raw,
+          mtgjson_uuid,
           updated_at: now,
         })
         .eq('id', cardId);
@@ -97,40 +126,45 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      const insertRes = await supabase.from('cards').insert([
-        {
-          scryfall_id,
-          name,
-          set_code,
-          set_name,
-          collector_number,
-          type_line,
-          rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
-          colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
-          color_identity:
-            (color_identity as any) ??
-            (json_raw as any)?.color_identity ??
-            null,
-          image_url,
-          json_raw,
-          has_nonfoil: foil === 'nonfoil' ? true : null,
-          has_foil: foil === 'foil' ? true : null,
-          has_etched: foil === 'etched' ? true : null,
-          created_at: now,
-          updated_at: now,
-        },
-      ]);
-      if ((insertRes as any).error) {
+      const insertRes = await supabase
+        .from('cards')
+        .insert([
+          {
+            scryfall_id,
+            name,
+            set_code,
+            set_name,
+            collector_number,
+            type_line,
+            rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
+            colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
+            color_identity:
+              (color_identity as any) ??
+              (json_raw as any)?.color_identity ??
+              null,
+            image_url,
+            json_raw,
+            mtgjson_uuid,
+            has_nonfoil: foil === 'nonfoil' ? true : null,
+            has_foil: foil === 'foil' ? true : null,
+            has_etched: foil === 'etched' ? true : null,
+            created_at: now,
+            updated_at: now,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (insertRes.error) {
         return NextResponse.json(
           {
-            error: (insertRes as any).error.message,
-            details: (insertRes as any).error,
+            error: insertRes.error.message,
+            details: insertRes.error,
           },
           { status: 500 }
         );
       }
-      const inserted = (insertRes as any).data as any;
-      cardId = inserted && inserted[0] ? inserted[0].id : null;
+      cardId = insertRes.data?.id ?? null;
     }
 
     if (!cardId) {
