@@ -14,6 +14,72 @@ import {
 import Image from 'next/image';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
+// Helper para mapear foil a siglas
+const mapFoilToAbbrev = (foil: string): string => {
+  switch (foil) {
+    case 'nonfoil':
+      return 'NF';
+    case 'foil':
+      return 'F';
+    case 'etched':
+      return 'E';
+    default:
+      return foil.toUpperCase();
+  }
+};
+
+// Helper para mapear price_source a siglas
+const mapPriceSourceToAbbrev = (source: string): string => {
+  switch (source) {
+    case 'scryfall':
+      return 'SF';
+    case 'cardkingdom':
+      return 'CK';
+    case 'manabox_csv':
+      return 'MB';
+    case 'manual':
+      return 'MAN';
+    default:
+      return source.substring(0, 3).toUpperCase();
+  }
+};
+
+// Helper para obtener el nombre completo de la fuente
+const getPriceSourceFullName = (source: string): string => {
+  switch (source) {
+    case 'scryfall':
+      return 'Scryfall';
+    case 'cardkingdom':
+      return 'Card Kingdom';
+    case 'manabox_csv':
+      return 'Manabox CSV';
+    case 'manual':
+      return 'Manual';
+    default:
+      return source;
+  }
+};
+
+// Helper para mapear condición a siglas
+const mapConditionToAbbrev = (condition: string): string => {
+  switch (condition) {
+    case 'mint':
+      return 'M';
+    case 'near_mint':
+      return 'NM';
+    case 'lightly_played':
+      return 'LP';
+    case 'moderately_played':
+      return 'MP';
+    case 'heavily_played':
+      return 'HP';
+    case 'damaged':
+      return 'D';
+    default:
+      return condition.substring(0, 2).toUpperCase();
+  }
+};
+
 type CardOffer = {
   id: string;
   card_id: string;
@@ -23,6 +89,7 @@ type CardOffer = {
   quantity: number;
   price_usd: number;
   markup_percent: number;
+  price_source: string;
   active: boolean;
   cards: {
     id: string;
@@ -157,50 +224,60 @@ export default function InventoryTable({
                 className="h-4 w-4 cursor-pointer rounded border-gray-300 text-zinc-900 focus:ring-2 focus:ring-zinc-500"
               />
             </TableHeadCell>
-            <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
+            <TableHeadCell className="px-6 py-3 whitespace-nowrap">
+              Imagen
+            </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('name')}
             >
               Nombre <SortIcon field="name" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('set')}
             >
               Set <SortIcon field="set" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('foil')}
             >
               Foil <SortIcon field="foil" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('condition')}
             >
               Condición <SortIcon field="condition" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('price')}
             >
               Precio <SortIcon field="price" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
+              onClick={() => onSort('price_source')}
+            >
+              Fuente <SortIcon field="price_source" />
+            </TableHeadCell>
+            <TableHeadCell
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('stock')}
             >
               Stock <SortIcon field="stock" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('active')}
             >
               Activa <SortIcon field="active" />
             </TableHeadCell>
-            <TableHeadCell className="px-6 py-3">Acciones</TableHeadCell>
+            <TableHeadCell className="px-6 py-3 whitespace-nowrap">
+              Acciones
+            </TableHeadCell>
           </TableRow>
         </TableHead>
         <TableBody className="divide-y divide-gray-200">
@@ -240,13 +317,19 @@ export default function InventoryTable({
                   {offer.cards.collector_number}
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-800">
-                    {mapFoilToSpanish(offer.foil)}
+                  <span
+                    className="cursor-help rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-800"
+                    title={mapFoilToSpanish(offer.foil)}
+                  >
+                    {mapFoilToAbbrev(offer.foil)}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
-                    {mapConditionToSpanish(offer.condition)}
+                  <span
+                    className="cursor-help rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800"
+                    title={mapConditionToSpanish(offer.condition)}
+                  >
+                    {mapConditionToAbbrev(offer.condition)}
                   </span>
                 </TableCell>
                 <TableCell className="px-6 py-4">
@@ -299,7 +382,7 @@ export default function InventoryTable({
                       <div className="flex flex-col gap-1">
                         <Button
                           size="xs"
-                          color="success"
+                          color="secondary"
                           onClick={() => onSaveMarkup(offer.id)}
                           title="Guardar"
                         >
@@ -307,7 +390,7 @@ export default function InventoryTable({
                         </Button>
                         <Button
                           size="xs"
-                          color="gray"
+                          color="secondary"
                           onClick={onCancelEditMarkup}
                           title="Cancelar"
                         >
@@ -357,6 +440,14 @@ export default function InventoryTable({
                   )}
                 </TableCell>
                 <TableCell className="px-6 py-4">
+                  <span
+                    className="cursor-help rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
+                    title={getPriceSourceFullName(offer.price_source)}
+                  >
+                    {mapPriceSourceToAbbrev(offer.price_source)}
+                  </span>
+                </TableCell>
+                <TableCell className="px-6 py-4">
                   <TextInput
                     type="number"
                     min={0}
@@ -378,7 +469,7 @@ export default function InventoryTable({
                       onChange={() => onToggleActive(offer.id, offer.active)}
                       className="peer sr-only"
                     />
-                    <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                    <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-indigo-900 peer-focus:ring-4 peer-focus:ring-indigo-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                     <span className="ml-3 text-sm font-medium text-gray-900">
                       {offer.active ? 'Activa' : 'Inactiva'}
                     </span>
@@ -387,7 +478,8 @@ export default function InventoryTable({
                 <TableCell className="px-6 py-4">
                   <Button
                     size="xs"
-                    color="failure"
+                    color="default"
+                    outline
                     onClick={() => onDeleteCard(offer.id)}
                     title="Eliminar carta"
                   >

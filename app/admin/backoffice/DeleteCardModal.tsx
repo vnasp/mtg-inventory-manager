@@ -46,10 +46,10 @@ export default function DeleteCardModal({
             )}
           </p>
           <div className="flex justify-center gap-4">
-            <Button color="gray" onClick={onClose} disabled={isLoading}>
+            <Button color="secondary" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button color="failure" onClick={onConfirm} disabled={isLoading}>
+            <Button color="default" onClick={onConfirm} disabled={isLoading}>
               {isLoading
                 ? 'Eliminando...'
                 : `Sí, eliminar ${isMultiple ? `${count} cartas` : 'carta'}`}

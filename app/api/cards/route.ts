@@ -7,6 +7,7 @@ export async function POST(req: Request) {
 
     const {
       scryfall_id = null,
+      scryfall_oracle_id = null,
       name,
       set_code,
       set_name,
@@ -71,12 +72,20 @@ export async function POST(req: Request) {
     // Intentar obtener mtgjson_uuid
     let mtgjson_uuid: string | null = null;
     try {
-      if (scryfall_id) {
+      if (scryfall_id || scryfall_oracle_id) {
         const supabaseForUuid = createAdminClient();
-        const { data: uuidData, error: uuidError } = await supabaseForUuid
-          .from('cardidentifiers')
-          .select('uuid')
-          .eq('scryfallid', scryfall_id)
+        let query = supabaseForUuid.from('cardidentifiers').select('uuid');
+
+        // Usar ambos IDs para una búsqueda más precisa
+        if (scryfall_id) {
+          query = query.eq('scryfallid', scryfall_id);
+        }
+        if (scryfall_oracle_id) {
+          query = query.eq('scryfalloracleid', scryfall_oracle_id);
+        }
+
+        const { data: uuidData, error: uuidError } = await query
+          .limit(1)
           .single();
 
         if (uuidError) {
@@ -86,7 +95,7 @@ export async function POST(req: Request) {
         if (uuidData?.uuid) {
           mtgjson_uuid = uuidData.uuid;
           console.log(
-            `Found MTGJSON UUID for ${name} (Scryfall: ${scryfall_id}):`,
+            `Found MTGJSON UUID for ${name} (Scryfall: ${scryfall_id || scryfall_oracle_id}):`,
             mtgjson_uuid
           );
         }
@@ -102,6 +111,8 @@ export async function POST(req: Request) {
         .from('cards')
         .update({
           scryfall_id,
+          scryfall_oracle_id:
+            scryfall_oracle_id ?? (json_raw as any)?.oracle_id ?? null,
           name,
           set_code,
           set_name,
@@ -131,6 +142,8 @@ export async function POST(req: Request) {
         .insert([
           {
             scryfall_id,
+            scryfall_oracle_id:
+              scryfall_oracle_id ?? (json_raw as any)?.oracle_id ?? null,
             name,
             set_code,
             set_name,
@@ -323,14 +336,25 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const q = url.searchParams.get('q') ?? '';
     const admin = url.searchParams.get('admin') === 'true';
+    const page = parseInt(url.searchParams.get('page') ?? '1');
+    const pageSize = parseInt(url.searchParams.get('pageSize') ?? '50');
+
+    // Validar parámetros de paginación
+    const validPage = Math.max(1, page);
+    const validPageSize = Math.min(Math.max(1, pageSize), 100); // Máximo 100 items por página
+
+    const from = (validPage - 1) * validPageSize;
+    const to = from + validPageSize - 1;
 
     // Construir query base
     let query = supabase
       .from('card_offers')
       .select(
-        `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
+        `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, scryfall_oracle_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`,
+        { count: 'exact' }
       )
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     // Si NO es admin (frontoffice), filtrar solo activas
     if (!admin) {
@@ -343,13 +367,21 @@ export async function GET(req: Request) {
       query = query.ilike('cards.name', `%${q}%`);
     }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data ?? [] });
+    return NextResponse.json({
+      data: data ?? [],
+      pagination: {
+        page: validPage,
+        pageSize: validPageSize,
+        total: count ?? 0,
+        totalPages: Math.ceil((count ?? 0) / validPageSize),
+      },
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json(

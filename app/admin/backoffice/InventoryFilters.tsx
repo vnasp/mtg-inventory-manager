@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { TextInput, Select, Button } from 'flowbite-react';
+import { TextInput } from 'flowbite-react';
 
 type InventoryFiltersProps = {
   searchQuery: string;
@@ -11,9 +11,6 @@ type InventoryFiltersProps = {
   setFilterMinPrice: (value: string) => void;
   filterMaxPrice: string;
   setFilterMaxPrice: (value: string) => void;
-  itemsPerPage: number;
-  setItemsPerPage: (value: number) => void;
-  onClearFilters: () => void;
 };
 
 export default function InventoryFilters({
@@ -25,15 +22,9 @@ export default function InventoryFilters({
   setFilterMinPrice,
   filterMaxPrice,
   setFilterMaxPrice,
-  itemsPerPage,
-  setItemsPerPage,
-  onClearFilters,
 }: InventoryFiltersProps) {
-  const hasActiveFilters =
-    searchQuery || filterSetCode || filterMinPrice || filterMaxPrice;
-
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
         <div className="flex-1">
           <label
@@ -101,33 +92,6 @@ export default function InventoryFilters({
             sizing="sm"
           />
         </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="itemsPerPage"
-            className="text-xs font-medium text-gray-700"
-          >
-            Mostrar:
-          </label>
-          <Select
-            id="itemsPerPage"
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="w-20"
-            sizing="sm"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </Select>
-        </div>
-        {hasActiveFilters && (
-          <Button size="sm" color="gray" onClick={onClearFilters}>
-            Limpiar filtros
-          </Button>
-        )}
       </div>
     </div>
   );
