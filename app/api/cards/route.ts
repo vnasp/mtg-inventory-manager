@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     try {
       if (scryfall_id || scryfall_oracle_id) {
         const supabaseForUuid = createAdminClient();
-        let query = supabaseForUuid.from('cardidentifiers').select('uuid');
+        let query = supabaseForUuid.from('mtg_cardidentifiers').select('uuid');
 
         // Usar ambos IDs para una búsqueda más precisa
         if (scryfall_id) {

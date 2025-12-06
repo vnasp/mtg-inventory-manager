@@ -9,7 +9,10 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [updatingPrices, setUpdatingPrices] = useState(false);
+  const [updatingIdentifiers, setUpdatingIdentifiers] = useState(false);
   const [progressMessages, setProgressMessages] = useState<string[]>([]);
+  const [identifiersProgressMessages, setIdentifiersProgressMessages] =
+    useState<string[]>([]);
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -18,6 +21,27 @@ export default function Settings() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [identifiersUpdateMessage, setIdentifiersUpdateMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const [lastUpdateDates, setLastUpdateDates] = useState<{
+    prices: string | null;
+    identifiers: string | null;
+  }>({ prices: null, identifiers: null });
+
+  const loadLastUpdateDates = async () => {
+    try {
+      const res = await fetch('/api/mtgjson/last-update');
+      const data = await res.json();
+      setLastUpdateDates({
+        prices: data.prices || null,
+        identifiers: data.identifiers || null,
+      });
+    } catch (e) {
+      console.error('Error cargando fechas de actualización:', e);
+    }
+  };
 
   useEffect(() => {
     // Cargar configuración actual
@@ -34,6 +58,9 @@ export default function Settings() {
         if (body?.min_card_price_clp?.amount !== undefined) {
           setMinCardPrice(String(body.min_card_price_clp.amount));
         }
+
+        // Cargar fechas de última actualización
+        await loadLastUpdateDates();
       } catch (e) {
         console.error(e);
         setMessage({ type: 'error', text: 'Error al cargar configuración' });
@@ -144,6 +171,8 @@ export default function Settings() {
                 type: 'success',
                 text: `Actualización completa: ${data.stats.pricesImported} precios importados, ${data.stats.offersUpdated} ofertas actualizadas`,
               });
+              // Recargar fechas de actualización
+              await loadLastUpdateDates();
             } else if (data.message) {
               setProgressMessages((prev) => [...prev, data.message]);
             }
@@ -158,6 +187,70 @@ export default function Settings() {
       });
     } finally {
       setUpdatingPrices(false);
+    }
+  };
+
+  const handleUpdateIdentifiers = async () => {
+    setUpdatingIdentifiers(true);
+    setIdentifiersUpdateMessage(null);
+    setIdentifiersProgressMessages([]);
+
+    try {
+      const res = await fetch('/api/mtgjson/update-identifiers', {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al conectar con el servidor');
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No se pudo leer la respuesta del servidor');
+      }
+
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+
+            if (data.error) {
+              throw new Error(data.error);
+            }
+
+            if (data.complete) {
+              setIdentifiersUpdateMessage({
+                type: 'success',
+                text: `Actualización completa: ${data.stats.recordsImported} identificadores importados`,
+              });
+              // Recargar fechas de actualización
+              await loadLastUpdateDates();
+            } else if (data.message) {
+              setIdentifiersProgressMessages((prev) => [...prev, data.message]);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setIdentifiersUpdateMessage({
+        type: 'error',
+        text: err.message || 'Error al actualizar identificadores',
+      });
+    } finally {
+      setUpdatingIdentifiers(false);
     }
   };
 
@@ -246,21 +339,29 @@ export default function Settings() {
       {/* Sección de actualización de precios de CardKingdom */}
       <div className="mt-8 border-t border-slate-200 pt-6">
         <h2 className="mb-4 text-lg font-semibold text-slate-800">
-          Actualización de Precios
+          Actualizaciones Masivas
         </h2>
 
         <Card>
           <div className="space-y-4">
-            <p className="mb-4 text-sm text-slate-600">
-              Actualiza los precios de las cartas desde CardKingdom mediante
-              MTGJson AllPricesToday. Este proceso actualizará el precio en USD
-              y es irreversible. Puede tardar unos minutos dependiendo de la
-              cantidad de cartas.
-            </p>
-            <p className="mb-4 text-sm text-slate-600">
-              La actualización también se ejecuta automáticamente los Lunes a
-              las 3 AM.
-            </p>
+            <div>
+              <h3 className="mb-2 font-semibold text-slate-700">
+                Actualizar Precios
+              </h3>
+              <p className="mb-4 text-sm text-slate-600">
+                Actualiza los precios de las cartas desde CardKingdom mediante
+                MTGJson AllPricesToday. Este proceso actualizará el precio en
+                USD y es irreversible. Puede tardar unos minutos dependiendo de
+                la cantidad de cartas.
+                <strong>Actualización automática los Lunes a las 3 AM.</strong>
+              </p>
+              {lastUpdateDates.prices && (
+                <p className="text-xs text-slate-500">
+                  Última actualización:{' '}
+                  {new Date(lastUpdateDates.prices).toLocaleString('es-CL')}
+                </p>
+              )}
+            </div>
 
             <div className="flex items-center gap-4">
               <Button
@@ -293,6 +394,72 @@ export default function Settings() {
                 <h4 className="mb-2 font-semibold text-blue-800">Progreso:</h4>
                 <ul className="space-y-1 text-sm text-blue-700">
                   {progressMessages.map((msg, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="mt-1 text-blue-500">✓</span>
+                      <span>{msg}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Sección de actualización de Card Identifiers */}
+        <Card className="mt-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="mb-2 font-semibold text-slate-700">
+                Actualizar Matriz de Identificadores de Cartas
+              </h3>
+              <p className="mb-4 text-sm text-slate-600">
+                Actualiza la matriz de identificadores de cartas desde MTGJson
+                para asociar los precios de CardKingdom. Este proceso puede
+                tardar varios minutos y consume más recursos que la
+                actualización de precios. Se recomienda ejecutarlo solo cuando
+                se lancen nuevos set de cartas.
+              </p>
+              {lastUpdateDates.identifiers && (
+                <p className="text-xs text-slate-500">
+                  Última actualización:{' '}
+                  {new Date(lastUpdateDates.identifiers).toLocaleString(
+                    'es-CL'
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleUpdateIdentifiers}
+                disabled={updatingIdentifiers}
+                color="default"
+                outline
+              >
+                {updatingIdentifiers
+                  ? 'Actualizando...'
+                  : 'Actualizar Card Identifiers'}
+              </Button>
+
+              {identifiersUpdateMessage && (
+                <div
+                  className={`rounded-lg px-4 py-2 text-sm ${
+                    identifiersUpdateMessage.type === 'success'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {identifiersUpdateMessage.text}
+                </div>
+              )}
+            </div>
+
+            {/* Mensajes de progreso */}
+            {updatingIdentifiers && identifiersProgressMessages.length > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <h4 className="mb-2 font-semibold text-blue-800">Progreso:</h4>
+                <ul className="space-y-1 text-sm text-blue-700">
+                  {identifiersProgressMessages.map((msg, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span className="mt-1 text-blue-500">✓</span>
                       <span>{msg}</span>

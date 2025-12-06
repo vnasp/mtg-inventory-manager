@@ -15,8 +15,8 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
 
-    // 1. Obtener mtgjson_uuid desde cardidentifiers
-    let query = supabase.from('cardidentifiers').select('uuid');
+    // 1. Obtener mtgjson_uuid desde mtg_cardidentifiers
+    let query = supabase.from('mtg_cardidentifiers').select('uuid');
 
     // Usar ambos IDs para una búsqueda más precisa
     if (scryfallId) {
