@@ -34,7 +34,7 @@ export default function CardInventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [fxRate, setFxRate] = useState<number>(1000);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [toast, setToast] = useState<{
