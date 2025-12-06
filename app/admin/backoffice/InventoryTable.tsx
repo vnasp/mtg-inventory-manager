@@ -299,7 +299,7 @@ export default function InventoryTable({
                       <div className="flex flex-col gap-1">
                         <Button
                           size="xs"
-                          color="success"
+                          color="secondary"
                           onClick={() => onSaveMarkup(offer.id)}
                           title="Guardar"
                         >
@@ -307,7 +307,7 @@ export default function InventoryTable({
                         </Button>
                         <Button
                           size="xs"
-                          color="gray"
+                          color="secondary"
                           onClick={onCancelEditMarkup}
                           title="Cancelar"
                         >
@@ -378,7 +378,7 @@ export default function InventoryTable({
                       onChange={() => onToggleActive(offer.id, offer.active)}
                       className="peer sr-only"
                     />
-                    <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                    <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-indigo-900 peer-focus:ring-4 peer-focus:ring-indigo-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                     <span className="ml-3 text-sm font-medium text-gray-900">
                       {offer.active ? 'Activa' : 'Inactiva'}
                     </span>
@@ -387,7 +387,8 @@ export default function InventoryTable({
                 <TableCell className="px-6 py-4">
                   <Button
                     size="xs"
-                    color="failure"
+                    color="default"
+                    outline
                     onClick={() => onDeleteCard(offer.id)}
                     title="Eliminar carta"
                   >

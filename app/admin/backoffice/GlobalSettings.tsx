@@ -179,7 +179,7 @@ export default function GlobalSettings() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button type="submit" disabled={saving} className="bg-bo-primary">
+          <Button type="submit" disabled={saving} color="default">
             {saving ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
 

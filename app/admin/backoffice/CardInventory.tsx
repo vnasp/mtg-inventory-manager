@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Button, Card } from 'flowbite-react';
+import { Button, Card, Select } from 'flowbite-react';
 import ToastNotification from '@/components/ToastNotification';
 import InventoryFilters from './InventoryFilters';
 import InventoryTable from './InventoryTable';
@@ -77,9 +77,9 @@ export default function CardInventory() {
   };
 
   useEffect(() => {
+    // Cargar ofertas y fx rate al montar (una sola vez)
     fetchOffers();
 
-    // Cargar fx rate
     (async () => {
       try {
         const res = await fetch(`/api/settings`);
@@ -89,10 +89,6 @@ export default function CardInventory() {
         // ignore
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    fetchOffers();
   }, []);
 
   const handleUpdateStock = async (offerId: string, newQuantity: number) => {
@@ -594,7 +590,8 @@ export default function CardInventory() {
           Listado completo de todas las cartas en stock ({sortedOffers.length}{' '}
           {sortedOffers.length === 1 ? 'carta' : 'cartas'})
         </p>
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-3">
+          {/* Fila 1: Filtros */}
           <InventoryFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -604,10 +601,55 @@ export default function CardInventory() {
             setFilterMinPrice={setFilterMinPrice}
             filterMaxPrice={filterMaxPrice}
             setFilterMaxPrice={setFilterMaxPrice}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            onClearFilters={handleClearFilters}
           />
+
+          {/* Fila 2: Controles de paginación y acciones */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="itemsPerPage"
+                className="text-sm font-medium text-gray-700"
+              >
+                Mostrar:
+              </label>
+              <Select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="w-24"
+                sizing="sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {(searchQuery ||
+                filterSetCode ||
+                filterMinPrice ||
+                filterMaxPrice) && (
+                <Button
+                  size="sm"
+                  color="secondary"
+                  onClick={handleClearFilters}
+                >
+                  Limpiar filtros
+                </Button>
+              )}
+              <Button
+                size="sm"
+                color="secondary"
+                onClick={fetchOffers}
+                disabled={loading}
+                aria-label="Refrescar inventario"
+              >
+                {loading ? 'Refrescando...' : 'Refrescar'}
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Barra de acciones masivas */}
@@ -621,7 +663,8 @@ export default function CardInventory() {
               {hasInactiveSelected && (
                 <Button
                   size="sm"
-                  color="success"
+                  color="default"
+                  outline
                   onClick={() => handleBulkToggleActive(true)}
                   disabled={isBulkActionLoading}
                 >
@@ -633,7 +676,8 @@ export default function CardInventory() {
               {hasActiveSelected && (
                 <Button
                   size="sm"
-                  color="failure"
+                  color="default"
+                  outline
                   onClick={() => handleBulkToggleActive(false)}
                   disabled={isBulkActionLoading}
                 >
@@ -644,7 +688,8 @@ export default function CardInventory() {
               )}
               <Button
                 size="sm"
-                color="warning"
+                color="default"
+                outline
                 onClick={handleOpenBulkMarkupModal}
                 disabled={isBulkActionLoading}
               >
@@ -652,7 +697,8 @@ export default function CardInventory() {
               </Button>
               <Button
                 size="sm"
-                color="failure"
+                color="default"
+                outline
                 onClick={() => setShowBulkDeleteModal(true)}
                 disabled={isBulkActionLoading}
               >
@@ -660,7 +706,7 @@ export default function CardInventory() {
               </Button>
               <Button
                 size="sm"
-                color="gray"
+                color="secondary"
                 onClick={() => setSelectedOfferIds(new Set())}
               >
                 Cancelar

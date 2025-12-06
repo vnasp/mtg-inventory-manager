@@ -66,7 +66,7 @@ function BackofficeHeader({ user }: BackofficeHeaderProps) {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              color="light"
+              color="secondary"
               size="sm"
               onClick={() => window.open('/', '_blank')}
             >

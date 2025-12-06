@@ -15,12 +15,20 @@ type CardData = {
   prices: { usd?: string; usd_foil?: string };
 };
 
+type CardKingdomPrices = {
+  price_retail_nonfoil_usd: number | null;
+  price_retail_foil_usd: number | null;
+  updated_at: string;
+};
+
 export default function CardSearch() {
   const [setName, setSetName] = useState('');
   const [collectorNumber, setCollectorNumber] = useState('');
   const [language, setLanguage] = useState('');
   const [loading, setLoading] = useState(false);
   const [card, setCard] = useState<CardData | null>(null);
+  const [ckPrices, setCkPrices] = useState<CardKingdomPrices | null>(null);
+  const [priceLastSync, setPriceLastSync] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
@@ -28,6 +36,7 @@ export default function CardSearch() {
     setLoading(true);
     setError(null);
     setCard(null);
+    setCkPrices(null);
 
     try {
       const q = new URLSearchParams({
@@ -45,6 +54,25 @@ export default function CardSearch() {
 
       const data = (await res.json()) as CardData;
       setCard(data);
+
+      // Obtener precios de Card Kingdom usando scryfall_id
+      const scryfallId = (data as any).id;
+      if (scryfallId) {
+        try {
+          const pricesRes = await fetch('/api/cardkingdom-prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scryfallId }),
+          });
+          if (pricesRes.ok) {
+            const pricesData = await pricesRes.json();
+            setCkPrices(pricesData.prices || null);
+            setPriceLastSync(pricesData.lastSync || null);
+          }
+        } catch (err) {
+          console.warn('No se pudieron obtener precios de Card Kingdom:', err);
+        }
+      }
     } catch (err: any) {
       setError(String(err));
     } finally {
@@ -114,14 +142,16 @@ export default function CardSearch() {
           image_url: card.image_uris?.normal ?? null,
           json_raw: card,
           foil: version === 'normal' ? 'nonfoil' : 'foil',
-          language: 'en',
+          language: 'es',
           condition: 'near_mint',
           quantity: stock,
           price_usd:
             version === 'normal'
-              ? formatPrice(card.prices.usd)
-              : formatPrice(card.prices.usd_foil),
-          price_source: 'scryfall',
+              ? (ckPrices?.price_retail_nonfoil_usd ??
+                formatPrice(card.prices.usd))
+              : (ckPrices?.price_retail_foil_usd ??
+                formatPrice(card.prices.usd_foil)),
+          price_source: ckPrices ? 'cardkingdom' : 'scryfall',
         };
 
         const res = await fetch(`/api/cards`, {
@@ -325,7 +355,7 @@ export default function CardSearch() {
         <Button
           onClick={handleImportCSV}
           disabled={importing}
-          color="gray"
+          color="secondary"
           className="w-full md:w-auto"
         >
           {importing ? 'Importando...' : 'Importar archivo CSV'}
@@ -408,16 +438,17 @@ export default function CardSearch() {
                 id="language"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                placeholder="default: en"
+                placeholder="default: es"
               />
             </div>
           </div>
 
           <div>
             <Button
+              color="default"
+              outline
               type="submit"
               disabled={loading || !setName || !collectorNumber}
-              className="bg-bo-primary"
             >
               {loading ? 'Buscando...' : 'Buscar'}
             </Button>
@@ -460,12 +491,34 @@ export default function CardSearch() {
                   </p>
                 </div>
 
+                {/* Información de fuentes de datos */}
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800">
+                  <p>
+                    <strong>Información de carta:</strong> Scryfall
+                  </p>
+                  <p>
+                    <strong>Precios:</strong>{' '}
+                    {ckPrices
+                      ? 'Card Kingdom vía MTGJSON'
+                      : 'Scryfall (fallback)'}
+                    {priceLastSync && ckPrices && (
+                      <span className="ml-1">
+                        (última actualización:{' '}
+                        {new Date(priceLastSync).toLocaleDateString('es-CL')})
+                      </span>
+                    )}
+                  </p>
+                </div>
+
                 {/* Precios */}
                 <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                   <h4>Precios</h4>
-                  {formatPrice(card.prices.usd) != null ? (
+                  {ckPrices?.price_retail_nonfoil_usd != null ||
+                  formatPrice(card.prices.usd) != null ? (
                     (() => {
-                      const usd = formatPrice(card.prices.usd)!;
+                      const usd =
+                        ckPrices?.price_retail_nonfoil_usd ??
+                        formatPrice(card.prices.usd)!;
                       const clp = usd * fxRate;
                       return (
                         <p className="text-sm text-gray-700">
@@ -478,9 +531,12 @@ export default function CardSearch() {
                     <p className="text-sm text-gray-500">Normal: -</p>
                   )}
 
-                  {formatPrice(card.prices.usd_foil) != null ? (
+                  {ckPrices?.price_retail_foil_usd != null ||
+                  formatPrice(card.prices.usd_foil) != null ? (
                     (() => {
-                      const usdF = formatPrice(card.prices.usd_foil)!;
+                      const usdF =
+                        ckPrices?.price_retail_foil_usd ??
+                        formatPrice(card.prices.usd_foil)!;
                       const clpF = usdF * fxRate;
                       return (
                         <p className="text-sm text-gray-700">
@@ -509,23 +565,34 @@ export default function CardSearch() {
                         onChange={(e) => setVersion(e.target.value as any)}
                       >
                         <option value="">Seleccionar versión</option>
-                        {formatPrice(card.prices.usd) != null && (
+                        {(ckPrices?.price_retail_nonfoil_usd != null ||
+                          formatPrice(card.prices.usd) != null) && (
                           <option value="normal">
-                            Normal — ${formatPrice(card.prices.usd)!.toFixed(2)}{' '}
+                            Normal — $
+                            {(
+                              ckPrices?.price_retail_nonfoil_usd ??
+                              formatPrice(card.prices.usd)!
+                            ).toFixed(2)}{' '}
                             USD ($
-                            {(formatPrice(card.prices.usd)! * fxRate).toFixed(
-                              0
-                            )}{' '}
+                            {(
+                              (ckPrices?.price_retail_nonfoil_usd ??
+                                formatPrice(card.prices.usd)!) * fxRate
+                            ).toFixed(0)}{' '}
                             CLP)
                           </option>
                         )}
-                        {formatPrice(card.prices.usd_foil) != null && (
+                        {(ckPrices?.price_retail_foil_usd != null ||
+                          formatPrice(card.prices.usd_foil) != null) && (
                           <option value="foil">
                             Foil — $
-                            {formatPrice(card.prices.usd_foil)!.toFixed(2)} USD
-                            ($
                             {(
-                              formatPrice(card.prices.usd_foil)! * fxRate
+                              ckPrices?.price_retail_foil_usd ??
+                              formatPrice(card.prices.usd_foil)!
+                            ).toFixed(2)}{' '}
+                            USD ($
+                            {(
+                              (ckPrices?.price_retail_foil_usd ??
+                                formatPrice(card.prices.usd_foil)!) * fxRate
                             ).toFixed(0)}{' '}
                             CLP)
                           </option>
