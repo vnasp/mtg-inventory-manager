@@ -224,56 +224,60 @@ export default function InventoryTable({
                 className="h-4 w-4 cursor-pointer rounded border-gray-300 text-zinc-900 focus:ring-2 focus:ring-zinc-500"
               />
             </TableHeadCell>
-            <TableHeadCell className="px-6 py-3">Imagen</TableHeadCell>
+            <TableHeadCell className="px-6 py-3 whitespace-nowrap">
+              Imagen
+            </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('name')}
             >
               Nombre <SortIcon field="name" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('set')}
             >
               Set <SortIcon field="set" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('foil')}
             >
               Foil <SortIcon field="foil" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('condition')}
             >
               Condición <SortIcon field="condition" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('price')}
             >
               Precio <SortIcon field="price" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('price_source')}
             >
               Fuente <SortIcon field="price_source" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('stock')}
             >
               Stock <SortIcon field="stock" />
             </TableHeadCell>
             <TableHeadCell
-              className="cursor-pointer px-6 py-3 hover:bg-gray-100"
+              className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('active')}
             >
               Activa <SortIcon field="active" />
             </TableHeadCell>
-            <TableHeadCell className="px-6 py-3">Acciones</TableHeadCell>
+            <TableHeadCell className="px-6 py-3 whitespace-nowrap">
+              Acciones
+            </TableHeadCell>
           </TableRow>
         </TableHead>
         <TableBody className="divide-y divide-gray-200">

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Label, TextInput } from 'flowbite-react';
+import { Button, Card, Label, TextInput, Tooltip } from 'flowbite-react';
+import { HiInformationCircle } from 'react-icons/hi2';
 
 export default function PokemonSettings() {
   const [fxRate, setFxRate] = useState<string>('');
@@ -111,9 +112,14 @@ export default function PokemonSettings() {
 
       <form onSubmit={handleSave} className="space-y-6">
         <div>
-          <Label htmlFor="fxRate" className="mb-2">
-            Tipo de Cambio USD/CLP (Pokémon)
-          </Label>
+          <div className="mb-2 flex flex-row items-center gap-2">
+            <Label htmlFor="fxRate" className="mb-0">
+              Tipo de Cambio USD/CLP
+            </Label>
+            <Tooltip content="El tipo de cambio se utiliza para convertir los precios de USD a CLP en el catálogo público.">
+              <HiInformationCircle className="h-4 w-4 cursor-help text-slate-400" />
+            </Tooltip>
+          </div>
           <TextInput
             id="fxRate"
             type="number"
@@ -130,9 +136,14 @@ export default function PokemonSettings() {
         </div>
 
         <div>
-          <Label htmlFor="minCardPrice" className="mb-2">
-            Precio Mínimo de Carta (CLP)
-          </Label>
+          <div className="mb-2 flex items-center gap-2">
+            <Label htmlFor="minCardPrice" className="mb-0">
+              Precio Mínimo de Carta (CLP)
+            </Label>
+            <Tooltip content="El precio mínimo en CLP se aplica cuando el precio USD multiplicado por el tipo de cambio es inferior a este valor, garantizando un precio mínimo por carta.">
+              <HiInformationCircle className="h-4 w-4 cursor-help text-slate-400" />
+            </Tooltip>
+          </div>
           <TextInput
             id="minCardPrice"
             type="number"
@@ -165,24 +176,6 @@ export default function PokemonSettings() {
               {message.text}
             </div>
           )}
-        </div>
-
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <h3 className="mb-2 font-semibold text-slate-700">Información</h3>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-600">
-            <li>
-              El <strong>tipo de cambio</strong> se utiliza para convertir los
-              precios de USD a CLP específicamente para cartas de Pokémon.
-            </li>
-            <li>
-              El <strong>precio mínimo</strong> garantiza que ninguna carta se
-              venda por debajo de este valor en CLP.
-            </li>
-            <li>
-              Cada juego (Magic, Pokémon) puede tener su propio tipo de cambio y
-              precio mínimo.
-            </li>
-          </ul>
         </div>
       </form>
     </Card>
