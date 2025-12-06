@@ -265,7 +265,7 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
     // 2.5) Intentar obtener mtgjson_uuid
     let mtgjson_uuid: string | null = null;
     try {
-      let query = supabase.from('cardidentifiers').select('uuid');
+      let query = supabase.from('mtg_cardidentifiers').select('uuid');
 
       // Usar ambos IDs para una búsqueda más precisa
       if (c.id) {
