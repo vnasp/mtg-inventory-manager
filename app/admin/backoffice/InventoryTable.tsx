@@ -124,6 +124,7 @@ type InventoryTableProps = {
   onSort: (field: string) => void;
   hasResults: boolean;
   hasFilteredResults: boolean;
+  loading?: boolean;
 };
 
 export default function InventoryTable({
@@ -149,6 +150,7 @@ export default function InventoryTable({
   onSort,
   hasResults,
   hasFilteredResults,
+  loading = false,
 }: InventoryTableProps) {
   const isAllSelected =
     items.length > 0 && items.every((offer) => selectedOfferIds.has(offer.id));
@@ -208,6 +210,11 @@ export default function InventoryTable({
 
   return (
     <div className="overflow-x-auto">
+      {loading && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-center">
+          <p className="text-sm text-blue-700">Cargando datos...</p>
+        </div>
+      )}
       <Table>
         <TableHead>
           <TableRow>
