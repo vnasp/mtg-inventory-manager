@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Card, Select } from 'flowbite-react';
 import ToastNotification from '@/components/ToastNotification';
 import InventoryFilters from './InventoryFilters';
@@ -60,44 +60,72 @@ export default function CardInventory() {
   const [filterMinPrice, setFilterMinPrice] = useState<string>('');
   const [filterMaxPrice, setFilterMaxPrice] = useState<string>('');
 
-  const fetchOffers = async (page = 1) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        admin: 'true',
-        page: String(page),
-        pageSize: String(itemsPerPage),
-      });
+  const fetchOffers = useCallback(
+    async (page = 1) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          admin: 'true',
+          page: String(page),
+          pageSize: String(itemsPerPage),
+        });
 
-      // Agregar parámetros de ordenamiento si existen
-      if (sortField) {
-        params.append('sortField', sortField);
-        params.append('sortDirection', sortDirection);
+        // Agregar parámetros de ordenamiento si existen
+        if (sortField) {
+          params.append('sortField', sortField);
+          params.append('sortDirection', sortDirection);
+        }
+
+        // Agregar parámetros de búsqueda y filtros si existen
+        if (searchQuery) {
+          params.append('q', searchQuery);
+        }
+        if (filterSetCode) {
+          params.append('set_code', filterSetCode);
+        }
+        if (filterMinPrice) {
+          params.append('min_price', filterMinPrice);
+        }
+        if (filterMaxPrice) {
+          params.append('max_price', filterMaxPrice);
+        }
+
+        const res = await fetch(`/api/cards?${params.toString()}`);
+        if (!res.ok) throw new Error('Error al cargar inventario');
+        const data = await res.json();
+        // Asegurar que markup_percent siempre tenga un valor
+        const offers = (data.data || []).map((offer: any) => ({
+          ...offer,
+          markup_percent: offer.markup_percent ?? 0,
+        }));
+        setOffers(offers);
+        setTotalItems(data.pagination?.total ?? 0);
+        setTotalPages(data.pagination?.totalPages ?? 0);
+        setCurrentPage(data.pagination?.page ?? 1);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-
-      const res = await fetch(`/api/cards?${params.toString()}`);
-      if (!res.ok) throw new Error('Error al cargar inventario');
-      const data = await res.json();
-      // Asegurar que markup_percent siempre tenga un valor
-      const offers = (data.data || []).map((offer: any) => ({
-        ...offer,
-        markup_percent: offer.markup_percent ?? 0,
-      }));
-      setOffers(offers);
-      setTotalItems(data.pagination?.total ?? 0);
-      setTotalPages(data.pagination?.totalPages ?? 0);
-      setCurrentPage(data.pagination?.page ?? 1);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [
+      itemsPerPage,
+      sortField,
+      sortDirection,
+      searchQuery,
+      filterSetCode,
+      filterMinPrice,
+      filterMaxPrice,
+    ]
+  );
 
   useEffect(() => {
-    // Cargar ofertas y fx rate al montar (una sola vez)
+    // Cargar ofertas cuando cambien los filtros, ordenamiento o paginación
     fetchOffers(currentPage);
+  }, [currentPage, fetchOffers]);
 
+  useEffect(() => {
+    // Cargar fx rate solo una vez al montar
     (async () => {
       try {
         const res = await fetch(`/api/settings?game=mtg`);
@@ -107,7 +135,7 @@ export default function CardInventory() {
         // ignore
       }
     })();
-  }, [currentPage, itemsPerPage, sortField, sortDirection]);
+  }, []);
 
   const handleUpdateStock = async (offerId: string, newQuantity: number) => {
     try {
@@ -496,29 +524,9 @@ export default function CardInventory() {
     }
   };
 
-  const filteredOffers = offers.filter(
-    (offer) =>
-      offer.cards.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (filterSetCode === '' ||
-        offer.cards.set_code
-          .toLowerCase()
-          .includes(filterSetCode.toLowerCase()) ||
-        offer.cards.set_name
-          .toLowerCase()
-          .includes(filterSetCode.toLowerCase())) &&
-      (filterMinPrice === '' ||
-        offer.price_usd >= parseFloat(filterMinPrice)) &&
-      (filterMaxPrice === '' || offer.price_usd <= parseFloat(filterMaxPrice))
-  );
-
-  // Ya no necesitamos ordenar del lado del cliente porque el API lo hace
-  const sortedOffers = filteredOffers;
-
-  // Para paginación del lado del cliente solo en filtros locales
-  const clientTotalPages = Math.ceil(sortedOffers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = sortedOffers.slice(startIndex, endIndex);
+  // No aplicar filtros del lado del cliente cuando el servidor ya maneja la paginación
+  // Los offers ya vienen filtrados y paginados desde el servidor
+  const currentItems = offers;
 
   const isAllSelected =
     currentItems.length > 0 &&
@@ -575,8 +583,8 @@ export default function CardInventory() {
       <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Inventario de Cartas</h1>
         <p className="backoffice-section-description mb-4">
-          Listado completo de todas las cartas en stock ({sortedOffers.length}{' '}
-          {sortedOffers.length === 1 ? 'carta' : 'cartas'})
+          Listado completo de todas las cartas en stock ({totalItems}{' '}
+          {totalItems === 1 ? 'carta' : 'cartas'})
         </p>
         <div className="flex w-full flex-col gap-3">
           {/* Fila 1: Filtros */}
@@ -707,11 +715,9 @@ export default function CardInventory() {
       <InventoryTable
         items={currentItems}
         currentPage={currentPage}
-        totalPages={
-          searchQuery || filterSetCode || filterMinPrice || filterMaxPrice
-            ? clientTotalPages
-            : totalPages
-        }
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={itemsPerPage}
         onPageChange={onPageChange}
         selectedOfferIds={selectedOfferIds}
         onSelectOffer={handleSelectOffer}
@@ -732,8 +738,8 @@ export default function CardInventory() {
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
-        hasResults={filteredOffers.length > 0}
-        hasFilteredResults={sortedOffers.length > 0}
+        hasResults={totalItems > 0}
+        hasFilteredResults={offers.length > 0}
         loading={loading}
       />
 

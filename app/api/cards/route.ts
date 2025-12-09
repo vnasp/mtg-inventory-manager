@@ -340,6 +340,9 @@ export async function GET(req: Request) {
     const pageSize = parseInt(url.searchParams.get('pageSize') ?? '50');
     const sortField = url.searchParams.get('sortField') ?? '';
     const sortDirection = url.searchParams.get('sortDirection') ?? 'asc';
+    const setCode = url.searchParams.get('set_code') ?? '';
+    const minPrice = url.searchParams.get('min_price') ?? '';
+    const maxPrice = url.searchParams.get('max_price') ?? '';
 
     // Validar parámetros de paginación
     const validPage = Math.max(1, page);
@@ -355,6 +358,31 @@ export async function GET(req: Request) {
         `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, scryfall_oracle_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`,
         { count: 'exact' }
       );
+
+    // Si NO es admin (frontoffice), filtrar solo activas
+    if (!admin) {
+      query = query.eq('active', true);
+    }
+
+    // Si hay query 'q', filtrar por nombre de carta case-insensitive
+    if (q && q.trim().length > 0) {
+      query = query.ilike('cards.name', `%${q}%`);
+    }
+
+    // Filtrar por código de set si existe
+    // Nota: Supabase no permite filtros OR complejos en relaciones
+    // Por ahora filtramos solo por set_code
+    if (setCode && setCode.trim().length > 0) {
+      query = query.ilike('cards.set_code', `%${setCode}%`);
+    }
+
+    // Filtrar por rango de precio
+    if (minPrice && !isNaN(parseFloat(minPrice))) {
+      query = query.gte('price_usd', parseFloat(minPrice));
+    }
+    if (maxPrice && !isNaN(parseFloat(maxPrice))) {
+      query = query.lte('price_usd', parseFloat(maxPrice));
+    }
 
     // Aplicar ordenamiento según el campo solicitado
     const ascending = sortDirection === 'asc';
@@ -392,17 +420,6 @@ export async function GET(req: Request) {
     }
 
     query = query.range(from, to);
-
-    // Si NO es admin (frontoffice), filtrar solo activas
-    if (!admin) {
-      query = query.eq('active', true);
-    }
-
-    // Si hay query 'q', filtrar por nombre de carta case-insensitive
-    if (q && q.trim().length > 0) {
-      // usar ilike para case-insensitive contains
-      query = query.ilike('cards.name', `%${q}%`);
-    }
 
     const { data, error, count } = await query;
 
