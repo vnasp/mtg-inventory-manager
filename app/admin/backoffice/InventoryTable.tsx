@@ -105,6 +105,8 @@ type InventoryTableProps = {
   items: CardOffer[];
   currentPage: number;
   totalPages: number;
+  totalItems: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
   selectedOfferIds: Set<string>;
   onSelectOffer: (offerId: string, checked: boolean) => void;
@@ -131,6 +133,8 @@ export default function InventoryTable({
   items,
   currentPage,
   totalPages,
+  totalItems,
+  pageSize,
   onPageChange,
   selectedOfferIds,
   onSelectOffer,
@@ -525,7 +529,12 @@ export default function InventoryTable({
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <div className="text-sm text-gray-600">
+            Mostrando {(currentPage - 1) * pageSize + 1} -{' '}
+            {Math.min(currentPage * pageSize, totalItems)} de {totalItems}{' '}
+            cartas
+          </div>
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

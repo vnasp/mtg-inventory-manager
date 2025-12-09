@@ -18,7 +18,7 @@ COMMENT ON TABLE public.mtg_cardkingdom_prices IS
 'Card Kingdom retail prices for MTG cards, indexed by MTGJSON UUID. Updated daily by sync_mtg_prices function.';
 
 COMMENT ON COLUMN public.mtg_cardkingdom_prices.mtgjson_uuid IS 
-'MTGJSON UUID linking to cardidentifiers table';
+'MTGJSON UUID linking to mtg_cardidentifiers table';
 
 COMMENT ON COLUMN public.mtg_cardkingdom_prices.price_retail_nonfoil_usd IS 
 'Latest Card Kingdom retail price for nonfoil/normal version in USD';
