@@ -22,7 +22,9 @@ interface Profile {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  phone: string | null;
   role: string | null;
+  created_at: string;
 }
 
 export default function Users() {
@@ -34,7 +36,9 @@ export default function Users() {
   const [editEmail, setEditEmail] = useState('');
   const [editFirstName, setEditFirstName] = useState('');
   const [editLastName, setEditLastName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [saving, setSaving] = useState(false);
+  const [filterRole, setFilterRole] = useState<string>('all');
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -42,8 +46,8 @@ export default function Users() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, email, first_name, last_name, role')
-          .order('email', { ascending: true });
+          .select('id, email, first_name, last_name, phone, role, created_at')
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
         setProfiles(data || []);
@@ -64,6 +68,7 @@ export default function Users() {
     setEditEmail(profile.email);
     setEditFirstName(profile.first_name || '');
     setEditLastName(profile.last_name || '');
+    setEditPhone(profile.phone || '');
     setEditModal(true);
   };
 
@@ -78,7 +83,7 @@ export default function Users() {
         .update({
           email: editEmail,
           first_name: editFirstName,
-          last_name: editLastName,
+          phone: editPhone,
         })
         .eq('id', editingProfile.id);
 
@@ -92,6 +97,8 @@ export default function Users() {
                 ...p,
                 email: editEmail,
                 first_name: editFirstName,
+                last_name: editLastName,
+                phone: editPhoname,
                 last_name: editLastName,
               }
             : p
@@ -135,32 +142,68 @@ export default function Users() {
     );
   }
 
+  const filteredProfiles = profiles.filter((profile) => {
+    if (filterRole === 'all') return true;
+    return profile.role === filterRole;
+  });
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-CL', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
     <Card>
-      <div className="mb-6 flex flex-col items-start justify-center">
-        <h1>Gestión de Usuarios</h1>
-        <p className="backoffice-section-description">
-          Administra los usuarios del sistema
-        </p>
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div>
+          <h1>Gestión de Usuarios</h1>
+          <p className="backoffice-section-description">
+            Administra los usuarios del sistema
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filter-role" className="whitespace-nowrap">
+            Filtrar por rol:
+          </Label>
+          <select
+            id="filter-role"
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="rounded-lg border-gray-300 text-sm focus:border-purple-500 focus:ring-purple-500"
+          >
+            <option value="all">Todos</option>
+            <option value="customer">Clientes</option>
+            <option value="admin">Administradores</option>
+          </select>
+        </div>
       </div>
 
-      {profiles.length === 0 ? (
+      {filteredProfiles.length === 0 ? (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-12 text-center">
-          <p className="text-slate-600">No hay usuarios registrados.</p>
+          <p className="text-slate-600">
+            {filterRole === 'all'
+              ? 'No hay usuarios registrados.'
+              : `No hay usuarios con el rol "${filterRole}".`}
+          </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
           <Table>
             <TableHead>
               <TableRow>
                 <TableHeadCell>Email</TableHeadCell>
-                <TableHeadCell>Nombre Completo</TableHeadCell>
+                <TableHeadCell>Nombre</TableHeadCell>
+                <TableHeadCell>Teléfono</TableHeadCell>
                 <TableHeadCell>Rol</TableHeadCell>
+                <TableHeadCell>Fecha Registro</TableHeadCell>
                 <TableHeadCell>Acciones</TableHeadCell>
               </TableRow>
             </TableHead>
             <TableBody className="divide-y divide-slate-200">
-              {profiles.map((profile) => (
+              {filteredProfiles.map((profile) => (
                 <TableRow key={profile.id} className="hover:bg-slate-50">
                   <TableCell className="font-medium text-slate-900">
                     {profile.email}
@@ -169,16 +212,22 @@ export default function Users() {
                     {`${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
                       '-'}
                   </TableCell>
+                  <TableCell className="text-slate-600">
+                    {profile.phone || '-'}
+                  </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                         profile.role === 'admin'
                           ? 'bg-purple-100 text-purple-800'
-                          : 'bg-slate-100 text-slate-700'
+                          : 'bg-blue-100 text-blue-800'
                       }`}
                     >
-                      {profile.role || 'user'}
+                      {profile.role === 'admin' ? 'Administrador' : 'Cliente'}
                     </span>
+                  </TableCell>
+                  <TableCell className="text-slate-600">
+                    {formatDate(profile.created_at)}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -198,9 +247,31 @@ export default function Users() {
         </div>
       )}
 
-      <div className="mt-6 text-sm text-slate-600">
-        Total de usuarios:{' '}
-        <span className="font-semibold">{profiles.length}</span>
+      <div className="mt-6 flex items-center justify-between text-sm text-slate-600">
+        <div>
+          Total de usuarios:{' '}
+          <span className="font-semibold">{profiles.length}</span>
+          {filterRole !== 'all' && (
+            <span className="ml-2">
+              (Mostrando:{' '}
+              <span className="font-semibold">{filteredProfiles.length}</span>)
+            </span>
+          )}
+        </div>
+        <div className="flex gap-4">
+          <div>
+            <span className="font-semibold">
+              {profiles.filter((p) => p.role === 'admin').length}
+            </span>{' '}
+            Administradores
+          </div>
+          <div>
+            <span className="font-semibold">
+              {profiles.filter((p) => p.role === 'customer').length}
+            </span>{' '}
+            Clientes
+          </div>
+        </div>
       </div>
 
       {/* Modal de edición */}
@@ -236,6 +307,16 @@ export default function Users() {
                 value={editLastName}
                 onChange={(e) => setEditLastName(e.target.value)}
                 placeholder="Apellido del usuario"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-phone">Teléfono</Label>
+              <TextInput
+                id="edit-phone"
+                type="tel"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                placeholder="Teléfono del usuario"
               />
             </div>
           </div>

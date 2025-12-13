@@ -12,8 +12,20 @@ export default async function Page() {
   const user = userData?.user ?? null;
 
   if (user) {
-    // If already authenticated, redirect to backoffice
-    redirect('/admin/backoffice');
+    // Check if user is admin
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileData?.role === 'admin') {
+      // If already authenticated as admin, redirect to backoffice
+      redirect('/admin/backoffice');
+    } else {
+      // If authenticated but not admin, redirect to home
+      redirect('/');
+    }
   }
 
   // If no session, render the client-side login form

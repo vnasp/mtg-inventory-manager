@@ -18,7 +18,7 @@ export default function LoginClient() {
     setMessage('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -29,7 +29,33 @@ export default function LoginClient() {
         return;
       }
 
-      // On success redirect to backoffice so the server page can validate the session
+      // Verificar que el usuario tiene rol de admin
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user?.id)
+        .single();
+
+      console.log('Profile data:', profileData);
+      console.log('Profile error:', profileError);
+      console.log('Role value:', profileData?.role);
+      console.log('Is admin?:', profileData?.role === 'admin');
+
+      if (profileError) {
+        setMessage(`Error al verificar rol: ${profileError.message}`);
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      if (profileData?.role !== 'admin') {
+        setMessage('Acceso denegado. Solo administradores pueden acceder.');
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      // On success redirect to backoffice
       window.location.href = '/admin/backoffice';
     } catch (err: any) {
       setMessage(err?.message ?? String(err));
@@ -92,9 +118,10 @@ export default function LoginClient() {
 
           <div>
             <Button
+              color="default"
               type="submit"
               disabled={loading}
-              className="bg-bo-primary w-full"
+              className="w-full"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>

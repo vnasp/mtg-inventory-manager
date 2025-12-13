@@ -14,12 +14,17 @@ export default async function Page() {
 
   if (!user) redirect('/admin');
 
-  // Obtener datos del perfil
+  // Obtener datos del perfil y verificar rol
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('first_name, last_name')
+    .select('first_name, last_name, role')
     .eq('id', user.id)
     .single();
+
+  // Si no es admin, redirigir al catálogo
+  if (profileData?.role !== 'admin') {
+    redirect('/');
+  }
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-50">

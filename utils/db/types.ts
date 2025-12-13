@@ -65,3 +65,27 @@ export interface CardOffer {
   created_at: string; // ISO
   updated_at: string; // ISO
 }
+
+// Tabla: profiles (Usuarios del sistema)
+export type UserRole = 'customer' | 'admin';
+
+export interface Profile {
+  id: string; // UUID vinculado a auth.users
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string; // default: 'Chile'
+  role: UserRole; // 'customer' | 'admin'
+  created_at: string; // ISO
+  updated_at: string; // ISO
+}
+
+// Interfaz extendida para el perfil con información computada
+export interface ProfileExtended extends Profile {
+  full_name: string; // first_name + last_name
+  is_admin: boolean; // role === 'admin'
+}
