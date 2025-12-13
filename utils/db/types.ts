@@ -89,3 +89,19 @@ export interface ProfileExtended extends Profile {
   full_name: string; // first_name + last_name
   is_admin: boolean; // role === 'admin'
 }
+
+// Tabla: cart (carrito de compras)
+export interface CartItem {
+  id: string;
+  user_id: string;
+  card_offer_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CartItemWithOffer extends CartItem {
+  card_offers: CardOffer & {
+    cards: Card;
+  };
+}

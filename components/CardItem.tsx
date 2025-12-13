@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { Badge } from 'flowbite-react';
+import { Badge, Button } from 'flowbite-react';
+import { HiShoppingCart } from 'react-icons/hi';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 import { calculatePriceClp } from '@/utils/priceCalculations';
 
@@ -11,6 +12,7 @@ type Props = {
   fxRate?: number;
   minCardPriceClp?: number;
   onClick: () => void;
+  onAddToCart?: () => void;
 };
 
 export default function CardItem({
@@ -18,8 +20,19 @@ export default function CardItem({
   fxRate,
   minCardPriceClp,
   onClick,
+  onAddToCart,
 }: Props) {
+  const [isAdding, setIsAdding] = useState(false);
   const card = offer.cards ?? offer.card ?? null;
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar abrir el modal al hacer clic en el botón
+    setIsAdding(true);
+    if (onAddToCart) {
+      await onAddToCart();
+    }
+    setIsAdding(false);
+  };
 
   // Precio en USD desde la oferta (fallback a 0 si no existe)
   const priceUsd = Number(offer.price_usd ?? 0);
@@ -125,11 +138,20 @@ export default function CardItem({
           )}
         </div>
 
-        {/* Precio */}
-        <div className="pt-1">
-          <span className="text-xl font-bold text-purple-600 lg:text-2xl">
+        {/* Precio y botón de agregar */}
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-lg font-bold text-purple-600 lg:text-xl">
             {formattedPrice}
           </span>
+          <Button
+            size="xs"
+            color="purple"
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            className="transition-all hover:scale-105"
+          >
+            <HiShoppingCart className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </article>

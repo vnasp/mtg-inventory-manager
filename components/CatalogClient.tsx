@@ -86,6 +86,12 @@ export default function CatalogClient({
     setFilters(newFilters);
   };
 
+  const handleCartUpdate = () => {
+    // Este callback se puede usar para actualizar el header cuando se agregue algo al carrito
+    // Por ahora, el Header maneja su propio estado, pero podríamos necesitarlo para sincronización
+    window.dispatchEvent(new Event('cartUpdated'));
+  };
+
   return (
     <>
       {/* Layout moderno e-commerce */}
@@ -110,6 +116,7 @@ export default function CatalogClient({
             minCardPriceClp={minCardPriceClp}
             filters={filters}
             onOpenFilters={() => setShowFilters(true)}
+            onCartUpdate={handleCartUpdate}
           />
         </div>
       </div>

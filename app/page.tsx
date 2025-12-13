@@ -75,7 +75,7 @@ export default async function Page() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <TopBar />
-      <Header />
+      <Header fxRate={fxRate} minCardPriceClp={minCardPriceClp} />
 
       {/* Main content */}
       <main className="container mx-auto flex-1 px-4 py-8">

@@ -36,11 +36,6 @@ export default function LoginClient() {
         .eq('id', data.user?.id)
         .single();
 
-      console.log('Profile data:', profileData);
-      console.log('Profile error:', profileError);
-      console.log('Role value:', profileData?.role);
-      console.log('Is admin?:', profileData?.role === 'admin');
-
       if (profileError) {
         setMessage(`Error al verificar rol: ${profileError.message}`);
         await supabase.auth.signOut();
@@ -68,13 +63,15 @@ export default function LoginClient() {
       <div className="w-full max-w-md space-y-8 rounded-xl border border-slate-200 bg-white p-8 shadow-lg">
         {/* Logo */}
         <div className="flex justify-center">
-          <Image
-            src="/assets/img/logo.png"
-            width={200}
-            height={120}
-            alt="Logo"
-            className="block opacity-95 brightness-[0.85] contrast-[1.05] filter-[drop-shadow(-1px_-1px_1px_rgba(255,255,255,0.25))_drop-shadow(2px_2px_3px_rgba(0,0,0,0.8))]"
-          />
+          <a href="/" className="block">
+            <Image
+              src="/assets/img/logo.png"
+              width={200}
+              height={120}
+              alt="Logo"
+              className="block cursor-pointer opacity-95 brightness-[0.85] contrast-[1.05] filter-[drop-shadow(-1px_-1px_1px_rgba(255,255,255,0.25))_drop-shadow(2px_2px_3px_rgba(0,0,0,0.8))] transition-opacity hover:opacity-75"
+            />
+          </a>
         </div>
 
         {/* Título */}

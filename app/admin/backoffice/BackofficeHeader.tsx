@@ -42,13 +42,15 @@ function BackofficeHeader({ user }: BackofficeHeaderProps) {
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo y título */}
         <div className="flex items-center gap-4">
-          <Image
-            src="/assets/img/logo.png"
-            width={50}
-            height={50}
-            alt="Logo"
-            className="h-10 w-auto"
-          />
+          <a href="/" className="block">
+            <Image
+              src="/assets/img/logo.png"
+              width={50}
+              height={50}
+              alt="Logo"
+              className="h-10 w-auto cursor-pointer transition-opacity hover:opacity-80"
+            />
+          </a>
           <div>
             <h1 className="text-lg font-bold text-slate-900">Backoffice</h1>
             <p className="text-xs text-slate-500">Panel de administración</p>

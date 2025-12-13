@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import SearchBar from '@/components/SearchBar';
-import { Button, Card, Pagination, Select } from 'flowbite-react';
+import { Button, Card, Pagination, Select, Toast } from 'flowbite-react';
+import { HiCheck } from 'react-icons/hi';
 import CardDetailModal from './CardDetailModal';
 import CardItem from './CardItem';
 import type { Filters } from './CatalogClient';
@@ -15,6 +16,7 @@ type Props = {
   minCardPriceClp?: number;
   filters: Filters;
   onOpenFilters?: () => void;
+  onCartUpdate?: () => void;
 };
 
 export default function RightSheet({
@@ -23,6 +25,7 @@ export default function RightSheet({
   minCardPriceClp,
   filters,
   onOpenFilters,
+  onCartUpdate,
 }: Props) {
   const [displayed, setDisplayed] = useState<any[]>(offers ?? []);
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,7 @@ export default function RightSheet({
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [showToast, setShowToast] = useState(false);
 
   // Calcular items por página según el tamaño de pantalla
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -302,6 +306,40 @@ export default function RightSheet({
     setSelectedOffer(null);
   };
 
+  const handleAddToCart = async (offerId: string) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          card_offer_id: offerId,
+          quantity: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al agregar al carrito');
+      }
+
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+
+      // Notificar al padre que el carrito se actualizó
+      if (onCartUpdate) {
+        onCartUpdate();
+      }
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      alert(
+        error.message ||
+          'Error al agregar al carrito. Por favor intenta nuevamente.'
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -413,6 +451,7 @@ export default function RightSheet({
                 fxRate={fxRate}
                 minCardPriceClp={minCardPriceClp}
                 onClick={() => openModal(o)}
+                onAddToCart={() => handleAddToCart(o.id)}
               />
             ))}
           </div>
@@ -442,6 +481,20 @@ export default function RightSheet({
         fxRate={fxRate}
         minCardPriceClp={minCardPriceClp}
       />
+
+      {/* Toast de confirmación */}
+      {showToast && (
+        <div className="fixed right-4 bottom-4 z-50">
+          <Toast>
+            <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500">
+              <HiCheck className="h-5 w-5" />
+            </div>
+            <div className="ml-3 text-sm font-normal">
+              Carta agregada al carrito
+            </div>
+          </Toast>
+        </div>
+      )}
     </div>
   );
 }

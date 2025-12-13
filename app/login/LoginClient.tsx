@@ -56,13 +56,15 @@ export default function LoginClient() {
       <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-2xl">
         <div>
           <div className="flex justify-center">
-            <Image
-              src="/assets/img/logo.png"
-              width={200}
-              height={120}
-              alt="Logo"
-              className="block"
-            />
+            <a href="/" className="block">
+              <Image
+                src="/assets/img/logo.png"
+                width={200}
+                height={120}
+                alt="Logo"
+                className="block cursor-pointer transition-opacity hover:opacity-80"
+              />
+            </a>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Iniciar Sesión
