@@ -76,8 +76,9 @@ export interface Profile {
   last_name: string | null;
   phone: string | null;
   address: string | null;
+  comuna: string | null;
   city: string | null;
-  postal_code: string | null;
+  region: string | null;
   country: string; // default: 'Chile'
   role: UserRole; // 'customer' | 'admin'
   created_at: string; // ISO
@@ -126,8 +127,9 @@ export interface Order {
   customer_phone: string | null;
 
   shipping_address: string;
+  shipping_comuna: string | null;
   shipping_city: string;
-  shipping_postal_code: string | null;
+  shipping_region: string | null;
   shipping_country: string;
 
   shipping_method: string | null;

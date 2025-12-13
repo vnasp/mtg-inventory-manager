@@ -175,25 +175,61 @@ export default function OrderConfirmationClient({ order }: Props) {
           {/* Información de envío */}
           <Card className="mb-6">
             <h2 className="mb-4 text-xl font-semibold text-gray-900">
-              Dirección de envío
+              {order.shipping_method === 'store_pickup'
+                ? 'Información de Retiro'
+                : 'Dirección de envío'}
             </h2>
-            <div className="text-gray-700">
-              {order.customer_first_name || order.customer_last_name ? (
-                <p className="font-semibold">
-                  {order.customer_first_name} {order.customer_last_name}
-                </p>
-              ) : null}
-              <p>{order.shipping_address}</p>
-              <p>
-                {order.shipping_city}
-                {order.shipping_postal_code &&
-                  `, ${order.shipping_postal_code}`}
+
+            {/* Método de envío */}
+            <div className="mb-4 rounded-lg bg-purple-50 p-3">
+              <p className="text-sm font-semibold text-purple-900">
+                Método:{' '}
+                {order.shipping_method === 'store_pickup'
+                  ? '🏪 Retiro en Tienda'
+                  : order.shipping_method || 'A definir'}
               </p>
-              <p>{order.shipping_country}</p>
-              {order.customer_phone && (
-                <p className="mt-2 text-sm">Tel: {order.customer_phone}</p>
+              {order.shipping_cost > 0 && (
+                <p className="text-sm text-purple-700">
+                  Costo: {formatPrice(order.shipping_cost, order.currency)}
+                </p>
               )}
             </div>
+
+            {order.shipping_method === 'store_pickup' ? (
+              <div className="rounded-lg bg-blue-50 p-4">
+                <p className="font-semibold text-blue-900">
+                  Tu pedido estará disponible para retiro en nuestra tienda
+                </p>
+                <p className="mt-2 text-sm text-blue-800">
+                  Te notificaremos por email a{' '}
+                  <strong>{order.customer_email}</strong> cuando esté listo para
+                  retiro.
+                </p>
+                {order.customer_phone && (
+                  <p className="mt-1 text-sm text-blue-700">
+                    También te contactaremos al {order.customer_phone}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="text-gray-700">
+                {order.customer_first_name || order.customer_last_name ? (
+                  <p className="font-semibold">
+                    {order.customer_first_name} {order.customer_last_name}
+                  </p>
+                ) : null}
+                <p>{order.shipping_address}</p>
+                {order.shipping_comuna && (
+                  <p>Comuna: {order.shipping_comuna}</p>
+                )}
+                <p>{order.shipping_city}</p>
+                {order.shipping_region && <p>{order.shipping_region}</p>}
+                <p>{order.shipping_country}</p>
+                {order.customer_phone && (
+                  <p className="mt-2 text-sm">Tel: {order.customer_phone}</p>
+                )}
+              </div>
+            )}
           </Card>
 
           {/* Acciones */}

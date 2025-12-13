@@ -20,8 +20,9 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     last_name: profile?.last_name || '',
     phone: profile?.phone || '',
     address: profile?.address || '',
+    comuna: profile?.comuna || '',
     city: profile?.city || '',
-    postal_code: profile?.postal_code || '',
+    region: profile?.region || '',
     country: profile?.country || 'Chile',
   });
 
@@ -196,25 +197,6 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
                 />
               </div>
 
-              {/* País */}
-              <div>
-                <label
-                  htmlFor="country"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  País
-                </label>
-                <input
-                  type="text"
-                  id="country"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
               {/* Dirección */}
               <div className="md:col-span-2">
                 <label
@@ -230,6 +212,27 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
                   value={formData.address}
                   onChange={handleChange}
                   disabled={!editing}
+                  placeholder="Calle, número, depto"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
+                />
+              </div>
+
+              {/* Comuna */}
+              <div>
+                <label
+                  htmlFor="comuna"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Comuna
+                </label>
+                <input
+                  type="text"
+                  id="comuna"
+                  name="comuna"
+                  value={formData.comuna}
+                  onChange={handleChange}
+                  disabled={!editing}
+                  placeholder="Ej: Providencia, Las Condes"
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
@@ -249,25 +252,80 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
                   value={formData.city}
                   onChange={handleChange}
                   disabled={!editing}
+                  placeholder="Ej: Santiago, Valparaíso"
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
 
-              {/* Código postal */}
-              <div>
+              {/* Región */}
+              <div className="md:col-span-2">
                 <label
-                  htmlFor="postal_code"
+                  htmlFor="region"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Código Postal
+                  Región
+                </label>
+                <select
+                  id="region"
+                  name="region"
+                  value={formData.region}
+                  onChange={(e) =>
+                    setFormData({ ...formData, region: e.target.value })
+                  }
+                  disabled={!editing}
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
+                >
+                  <option value="">Selecciona una región</option>
+                  <option value="Región de Arica y Parinacota">
+                    Región de Arica y Parinacota
+                  </option>
+                  <option value="Región de Tarapacá">Región de Tarapacá</option>
+                  <option value="Región de Antofagasta">
+                    Región de Antofagasta
+                  </option>
+                  <option value="Región de Atacama">Región de Atacama</option>
+                  <option value="Región de Coquimbo">Región de Coquimbo</option>
+                  <option value="Región de Valparaíso">
+                    Región de Valparaíso
+                  </option>
+                  <option value="Región Metropolitana de Santiago">
+                    Región Metropolitana de Santiago
+                  </option>
+                  <option value="Región del Libertador General Bernardo O'Higgins">
+                    Región del Libertador General Bernardo O'Higgins
+                  </option>
+                  <option value="Región del Maule">Región del Maule</option>
+                  <option value="Región de Ñuble">Región de Ñuble</option>
+                  <option value="Región del Biobío">Región del Biobío</option>
+                  <option value="Región de La Araucanía">
+                    Región de La Araucanía
+                  </option>
+                  <option value="Región de Los Ríos">Región de Los Ríos</option>
+                  <option value="Región de Los Lagos">
+                    Región de Los Lagos
+                  </option>
+                  <option value="Región de Aysén">Región de Aysén</option>
+                  <option value="Región de Magallanes y de la Antártica Chilena">
+                    Región de Magallanes y de la Antártica Chilena
+                  </option>
+                </select>
+              </div>
+
+              {/* País */}
+              <div>
+                <label
+                  htmlFor="country"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  País
                 </label>
                 <input
                   type="text"
-                  id="postal_code"
-                  name="postal_code"
-                  value={formData.postal_code}
+                  id="country"
+                  name="country"
+                  value={formData.country}
                   onChange={handleChange}
-                  disabled={!editing}
+                  disabled
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-purple-500 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
@@ -294,8 +352,9 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
                         last_name: profile?.last_name || '',
                         phone: profile?.phone || '',
                         address: profile?.address || '',
+                        comuna: profile?.comuna || '',
                         city: profile?.city || '',
-                        postal_code: profile?.postal_code || '',
+                        region: profile?.region || '',
                         country: profile?.country || 'Chile',
                       });
                     }}

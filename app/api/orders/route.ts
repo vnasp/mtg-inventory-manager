@@ -12,15 +12,41 @@ export async function POST(request: Request) {
     const user = userData?.user ?? null;
 
     const body = await request.json();
-    const { customer, items, subtotal, tax, shipping_cost, total, currency } =
-      body;
+    const {
+      customer,
+      shipping_method,
+      items,
+      subtotal,
+      tax,
+      shipping_cost,
+      total,
+      currency,
+    } = body;
 
     // Validaciones
-    if (!customer.email || !customer.address || !customer.city) {
+    if (!customer.email) {
       return NextResponse.json(
-        { error: 'Datos de cliente incompletos' },
+        { error: 'Email es requerido' },
         { status: 400 }
       );
+    }
+
+    // Si no es retiro en tienda, validar dirección
+    if (shipping_method !== 'store_pickup') {
+      if (
+        !customer.address ||
+        !customer.comuna ||
+        !customer.city ||
+        !customer.region
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              'Dirección de envío completa es requerida (Dirección, Comuna, Ciudad, Región)',
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (!items || items.length === 0) {
@@ -39,11 +65,12 @@ export async function POST(request: Request) {
         customer_first_name: customer.firstName || null,
         customer_last_name: customer.lastName || null,
         customer_phone: customer.phone || null,
-        shipping_address: customer.address,
-        shipping_city: customer.city,
-        shipping_postal_code: customer.postalCode || null,
+        shipping_address: customer.address || 'Retiro en tienda',
+        shipping_comuna: customer.comuna || null,
+        shipping_city: customer.city || 'N/A',
+        shipping_region: customer.region || null,
         shipping_country: customer.country || 'Chile',
-        shipping_method: null, // Pendiente integración
+        shipping_method: shipping_method || 'store_pickup',
         shipping_cost: shipping_cost || 0,
         payment_method: null, // Pendiente integración
         payment_status: 'pending',

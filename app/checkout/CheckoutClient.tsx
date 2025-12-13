@@ -22,14 +22,17 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
 
+  const [shippingMethod, setShippingMethod] = useState('store_pickup');
+
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
     lastName: '',
     phone: '',
     address: '',
+    comuna: '',
     city: '',
-    postalCode: '',
+    region: '',
     country: 'Chile',
     notes: '',
   });
@@ -59,8 +62,9 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
             lastName: profileData.last_name || '',
             phone: profileData.phone || '',
             address: profileData.address || '',
+            comuna: profileData.comuna || '',
             city: profileData.city || '',
-            postalCode: profileData.postal_code || '',
+            region: profileData.region || '',
             country: profileData.country || 'Chile',
             notes: '',
           });
@@ -115,7 +119,7 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
     return sum + calculateItemPrice(item) * item.quantity;
   }, 0);
 
-  const shippingCost = 0; // Pendiente integración
+  const shippingCost = shippingMethod === 'store_pickup' ? 0 : 0; // Retiro en tienda sin costo
   const tax = 0; // Pendiente cálculo de impuestos
   const total = subtotal + shippingCost + tax;
 
@@ -125,10 +129,26 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
 
     try {
       // Validaciones básicas
-      if (!formData.email || !formData.address || !formData.city) {
-        alert('Por favor completa todos los campos requeridos');
+      if (!formData.email) {
+        alert('Por favor ingresa tu email');
         setSubmitting(false);
         return;
+      }
+
+      // Si NO es retiro en tienda, validar dirección
+      if (shippingMethod !== 'store_pickup') {
+        if (
+          !formData.address ||
+          !formData.comuna ||
+          !formData.city ||
+          !formData.region
+        ) {
+          alert(
+            'Por favor completa la dirección de envío (Dirección, Comuna, Ciudad y Región son requeridos)'
+          );
+          setSubmitting(false);
+          return;
+        }
       }
 
       // Crear orden
@@ -139,6 +159,7 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
         },
         body: JSON.stringify({
           customer: formData,
+          shipping_method: shippingMethod,
           items: cartItems.map((item) => ({
             card_offer_id: item.card_offer_id,
             quantity: item.quantity,
@@ -289,12 +310,20 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
                   <HiTruck className="h-6 w-6 text-purple-600" />
                   Dirección de envío
+                  {shippingMethod === 'store_pickup' && (
+                    <span className="text-sm font-normal text-gray-500">
+                      (Opcional para retiro en tienda)
+                    </span>
+                  )}
                 </h2>
 
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="address">
-                      Dirección <span className="text-red-500">*</span>
+                      Dirección{' '}
+                      {shippingMethod !== 'store_pickup' && (
+                        <span className="text-red-500">*</span>
+                      )}
                     </Label>
                     <TextInput
                       id="address"
@@ -302,39 +331,129 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
                       onChange={(e) =>
                         setFormData({ ...formData, address: e.target.value })
                       }
-                      required
+                      required={shippingMethod !== 'store_pickup'}
                       placeholder="Calle Ejemplo 123, Depto 4B"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="comuna">
+                      Comuna{' '}
+                      {shippingMethod !== 'store_pickup' && (
+                        <span className="text-red-500">*</span>
+                      )}
+                    </Label>
+                    <TextInput
+                      id="comuna"
+                      value={formData.comuna}
+                      onChange={(e) =>
+                        setFormData({ ...formData, comuna: e.target.value })
+                      }
+                      required={shippingMethod !== 'store_pickup'}
+                      placeholder="Ej: Providencia, Las Condes, Maipú"
                     />
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label htmlFor="city">
-                        Ciudad <span className="text-red-500">*</span>
+                        Ciudad{' '}
+                        {shippingMethod !== 'store_pickup' && (
+                          <span className="text-red-500">*</span>
+                        )}
                       </Label>
-                      <TextInput
+                      <select
                         id="city"
                         value={formData.city}
                         onChange={(e) =>
                           setFormData({ ...formData, city: e.target.value })
                         }
-                        required
-                        placeholder="Santiago"
-                      />
+                        required={shippingMethod !== 'store_pickup'}
+                        className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                      >
+                        <option value="">Selecciona una ciudad</option>
+                        <option value="Santiago">Santiago</option>
+                        <option value="Valparaíso">Valparaíso</option>
+                        <option value="Viña del Mar">Viña del Mar</option>
+                        <option value="Concepción">Concepción</option>
+                        <option value="La Serena">La Serena</option>
+                        <option value="Antofagasta">Antofagasta</option>
+                        <option value="Temuco">Temuco</option>
+                        <option value="Rancagua">Rancagua</option>
+                        <option value="Talca">Talca</option>
+                        <option value="Arica">Arica</option>
+                        <option value="Chillán">Chillán</option>
+                        <option value="Iquique">Iquique</option>
+                        <option value="Puerto Montt">Puerto Montt</option>
+                        <option value="Coquimbo">Coquimbo</option>
+                        <option value="Osorno">Osorno</option>
+                        <option value="Valdivia">Valdivia</option>
+                        <option value="Punta Arenas">Punta Arenas</option>
+                        <option value="Otra">Otra</option>
+                      </select>
                     </div>
                     <div>
-                      <Label htmlFor="postalCode">Código Postal</Label>
-                      <TextInput
-                        id="postalCode"
-                        value={formData.postalCode}
+                      <Label htmlFor="region">
+                        Región{' '}
+                        {shippingMethod !== 'store_pickup' && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </Label>
+                      <select
+                        id="region"
+                        value={formData.region}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            postalCode: e.target.value,
-                          })
+                          setFormData({ ...formData, region: e.target.value })
                         }
-                        placeholder="8320000"
-                      />
+                        required={shippingMethod !== 'store_pickup'}
+                        className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                      >
+                        <option value="">Selecciona una región</option>
+                        <option value="Región de Arica y Parinacota">
+                          Región de Arica y Parinacota
+                        </option>
+                        <option value="Región de Tarapacá">
+                          Región de Tarapacá
+                        </option>
+                        <option value="Región de Antofagasta">
+                          Región de Antofagasta
+                        </option>
+                        <option value="Región de Atacama">
+                          Región de Atacama
+                        </option>
+                        <option value="Región de Coquimbo">
+                          Región de Coquimbo
+                        </option>
+                        <option value="Región de Valparaíso">
+                          Región de Valparaíso
+                        </option>
+                        <option value="Región Metropolitana de Santiago">
+                          Región Metropolitana de Santiago
+                        </option>
+                        <option value="Región del Libertador General Bernardo O'Higgins">
+                          Región del Libertador General Bernardo O&apos;Higgins
+                        </option>
+                        <option value="Región del Maule">
+                          Región del Maule
+                        </option>
+                        <option value="Región de Ñuble">Región de Ñuble</option>
+                        <option value="Región del Biobío">
+                          Región del Biobío
+                        </option>
+                        <option value="Región de La Araucanía">
+                          Región de La Araucanía
+                        </option>
+                        <option value="Región de Los Ríos">
+                          Región de Los Ríos
+                        </option>
+                        <option value="Región de Los Lagos">
+                          Región de Los Lagos
+                        </option>
+                        <option value="Región de Aysén">Región de Aysén</option>
+                        <option value="Región de Magallanes y de la Antártica Chilena">
+                          Región de Magallanes y de la Antártica Chilena
+                        </option>
+                      </select>
                     </div>
                   </div>
 
@@ -343,28 +462,66 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
                     <TextInput
                       id="country"
                       value={formData.country}
-                      onChange={(e) =>
-                        setFormData({ ...formData, country: e.target.value })
-                      }
+                      disabled
                       placeholder="Chile"
                     />
                   </div>
                 </div>
               </Card>
 
-              {/* Método de envío - Placeholder */}
+              {/* Método de envío */}
               <Card>
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
                   <HiTruck className="h-6 w-6 text-purple-600" />
                   Método de envío
                 </h2>
-                <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-                  <p className="text-sm text-gray-500">
-                    Integración de transportistas pendiente
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">
-                    El costo de envío se calculará al implementar la integración
-                  </p>
+
+                <div className="space-y-3">
+                  {/* Retiro en tienda */}
+                  <label
+                    className={`flex cursor-pointer items-center justify-between rounded-lg border-2 p-4 transition-all ${
+                      shippingMethod === 'store_pickup'
+                        ? 'border-purple-600 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value="store_pickup"
+                        checked={shippingMethod === 'store_pickup'}
+                        onChange={(e) => setShippingMethod(e.target.value)}
+                        className="h-4 w-4 text-purple-600"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          Retiro en Tienda
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Retira tu pedido en nuestra tienda
+                        </p>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-green-600">Gratis</span>
+                  </label>
+
+                  {/* Nota informativa */}
+                  {shippingMethod === 'store_pickup' && (
+                    <div className="rounded-lg bg-blue-50 p-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>Dirección:</strong> Te notificaremos cuando tu
+                        pedido esté listo para retiro.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Placeholder para otros métodos de envío */}
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-center">
+                    <p className="text-xs text-gray-500">
+                      Otros métodos de envío estarán disponibles próximamente
+                    </p>
+                  </div>
                 </div>
               </Card>
 
@@ -488,7 +645,7 @@ export default function CheckoutClient({ fxRate, minCardPriceClp }: Props) {
                     <Button
                       type="submit"
                       disabled={submitting}
-                      className="mt-6 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-lg font-semibold"
+                      className="mt-6 w-full bg-linear-to-r from-purple-600 to-pink-600 text-lg font-semibold"
                       size="lg"
                     >
                       {submitting ? 'Procesando...' : 'Confirmar pedido'}
