@@ -249,13 +249,13 @@ export default function CartDrawer({
               <Button
                 className="w-full bg-linear-to-r from-purple-600 to-pink-600 font-semibold text-white"
                 size="lg"
-                disabled
+                onClick={() => (window.location.href = '/checkout')}
               >
-                Ir a Checkout (Próximamente)
+                Ir a Checkout
               </Button>
 
               <p className="mt-2 text-center text-xs text-gray-500">
-                El checkout rápido estará disponible pronto
+                Checkout rápido con métodos de pago pendientes de integración
               </p>
             </div>
           </div>

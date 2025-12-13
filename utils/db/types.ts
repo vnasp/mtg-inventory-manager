@@ -105,3 +105,75 @@ export interface CartItemWithOffer extends CartItem {
     cards: Card;
   };
 }
+
+// Tabla: orders (órdenes de compra)
+export type OrderStatus =
+  | 'pending'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
+export interface Order {
+  id: number;
+  order_number: string;
+  user_id: string | null;
+
+  customer_email: string;
+  customer_first_name: string | null;
+  customer_last_name: string | null;
+  customer_phone: string | null;
+
+  shipping_address: string;
+  shipping_city: string;
+  shipping_postal_code: string | null;
+  shipping_country: string;
+
+  shipping_method: string | null;
+  shipping_cost: number;
+
+  payment_method: string | null;
+  payment_status: PaymentStatus;
+  payment_reference: string | null;
+
+  subtotal: number;
+  tax: number;
+  total: number;
+  currency: string;
+
+  status: OrderStatus;
+
+  customer_notes: string | null;
+  admin_notes: string | null;
+
+  created_at: string;
+  updated_at: string;
+  paid_at: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+}
+
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  card_offer_id: number;
+
+  card_name: string;
+  card_set_name: string | null;
+  card_image_url: string | null;
+
+  unit_price: number;
+  quantity: number;
+  subtotal: number;
+
+  condition: string | null;
+  foil: string | null;
+  language: string | null;
+
+  created_at: string;
+}
+
+export interface OrderWithItems extends Order {
+  order_items: OrderItem[];
+}
