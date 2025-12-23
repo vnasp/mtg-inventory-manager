@@ -8,8 +8,18 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user ?? null;
+    // Obtener usuario si está autenticado (no falla si no lo está)
+    let user = null;
+    try {
+      const { data: userData, error: authError } =
+        await supabase.auth.getUser();
+      if (!authError && userData?.user) {
+        user = userData.user;
+      }
+    } catch (authError) {
+      // Usuario no autenticado, continuar como invitado
+      console.log('Guest checkout - no authenticated user');
+    }
 
     const body = await request.json();
     const {
@@ -127,11 +137,30 @@ export async function POST(request: Request) {
       await supabase.from('cart').delete().eq('user_id', user.id);
     }
 
-    return NextResponse.json({ order, message: 'Orden creada exitosamente' });
+    // Devolver orden con items
+    const orderWithItems = {
+      ...order,
+      order_items: itemsWithDetails,
+    };
+
+    return NextResponse.json({
+      order: orderWithItems,
+      message: 'Orden creada exitosamente',
+    });
   } catch (error: any) {
     console.error('Error creating order:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return NextResponse.json(
-      { error: error.message ?? 'Error al crear la orden' },
+      {
+        error: error.message ?? 'Error al crear la orden',
+        details: error.details ?? null,
+        hint: error.hint ?? null,
+      },
       { status: 500 }
     );
   }

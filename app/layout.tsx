@@ -1,19 +1,6 @@
 import type { Metadata } from 'next';
-import { ThemeModeScript, ThemeProvider } from 'flowbite-react';
-
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
-import themeVG from '@/themeVG';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+import { ThemeModeScript } from 'flowbite-react';
+import { ThemeInit } from '@/.flowbite-react/init';
 
 export const metadata: Metadata = {
   title: 'VuduGaming - Catálogo de Cartas Magic the Gathering',
@@ -26,15 +13,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html suppressHydrationWarning>
       <head>
-        <ThemeModeScript />
+        <ThemeModeScript mode="light" defaultMode="light" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider theme={themeVG}>{children}</ThemeProvider>
-      </body>
+      <ThemeInit />
+      <body>{children}</body>
     </html>
   );
 }

@@ -2,9 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @import 'tailwindcss';
-@plugin 'flowbite-react/plugin/tailwindcss';
+@import 'flowbite-react/plugin/tailwindcss';
 @source '../.flowbite-react/class-list.json';
-@import 'flowbite/dist/flowbite.css';
+@import 'flowbite';
 
 @theme {
   --font-family-sans: 'Poppins', 'Inter', sans-serif;

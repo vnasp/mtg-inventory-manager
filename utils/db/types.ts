@@ -1,25 +1,24 @@
 // Tipos y enumeraciones para las tablas `cards` y `card_offers`
 
 // enums lógicas
-export type CardFoil = 'nonfoil' | 'foil' | 'etched';
-export type CardCondition =
+type CardFoil = 'nonfoil' | 'foil' | 'etched';
+type CardCondition =
   | 'mint'
   | 'near_mint'
   | 'lightly_played'
   | 'moderately_played'
   | 'heavily_played'
   | 'damaged';
-export type CardRarity =
+type CardRarity =
   | 'common'
   | 'uncommon'
   | 'rare'
   | 'mythic'
   | 'special'
   | 'bonus';
-export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C'; // White, Blue, Black, Red, Green, Colorless
 
 // Tabla: cards
-export interface Card {
+interface Card {
   id: number;
   scryfall_id?: string | null; // UUID en texto (identifica la impresión específica)
   scryfall_oracle_id?: string | null; // Oracle ID de Scryfall (identifica la carta a través de sets)
@@ -45,7 +44,7 @@ export interface Card {
 }
 
 // Tabla: card_offers (variantes vendibles)
-export interface CardOffer {
+interface CardOffer {
   id: number;
   card_id: number;
 
@@ -67,7 +66,7 @@ export interface CardOffer {
 }
 
 // Tabla: profiles (Usuarios del sistema)
-export type UserRole = 'customer' | 'admin';
+type UserRole = 'customer' | 'admin';
 
 export interface Profile {
   id: string; // UUID vinculado a auth.users
@@ -85,14 +84,8 @@ export interface Profile {
   updated_at: string; // ISO
 }
 
-// Interfaz extendida para el perfil con información computada
-export interface ProfileExtended extends Profile {
-  full_name: string; // first_name + last_name
-  is_admin: boolean; // role === 'admin'
-}
-
 // Tabla: cart (carrito de compras)
-export interface CartItem {
+interface CartItem {
   id: string;
   user_id: string;
   card_offer_id: string;
@@ -108,15 +101,15 @@ export interface CartItemWithOffer extends CartItem {
 }
 
 // Tabla: orders (órdenes de compra)
-export type OrderStatus =
+type OrderStatus =
   | 'pending'
   | 'processing'
   | 'shipped'
   | 'delivered'
   | 'cancelled';
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+ type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
-export interface Order {
+interface Order {
   id: number;
   order_number: string;
   user_id: string | null;
@@ -156,7 +149,7 @@ export interface Order {
   delivered_at: string | null;
 }
 
-export interface OrderItem {
+interface OrderItem {
   id: number;
   order_id: number;
   card_offer_id: number;

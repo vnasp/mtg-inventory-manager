@@ -1,4 +1,4 @@
-export interface CardData {
+interface CardData {
   id?: string;
   oracle_id?: string;
   name: string;

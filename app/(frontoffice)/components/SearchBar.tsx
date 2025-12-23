@@ -1,0 +1,53 @@
+'use client';
+
+import { TextInput, Spinner } from 'flowbite-react';
+import React, { useEffect, useState } from 'react';
+import { MdSearch } from 'react-icons/md';
+
+type Props = {
+  onSearch: (q: string) => void;
+  placeholder?: string;
+  loading?: boolean;
+};
+
+export default function SearchBar({
+  onSearch,
+  placeholder = 'Buscar...',
+  loading = false,
+}: Props) {
+  const [value, setValue] = useState('');
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), 300);
+    return () => clearTimeout(t);
+  }, [value]);
+
+  useEffect(() => {
+    onSearch(debounced.trim());
+  }, [debounced, onSearch]);
+
+  return (
+    <div className="relative w-full">
+      <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+        <MdSearch className="h-5 w-5 text-gray-400" />
+      </div>
+
+      <TextInput
+        type="search"
+        sizing="sm"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="border-gray-300 bg-gray-50 pl-10 text-sm text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+        aria-label="Buscar "
+      />
+
+      {loading && (
+        <span className="absolute inset-y-0 right-3 flex items-center">
+          <Spinner size="lg" />
+        </span>
+      )}
+    </div>
+  );
+}

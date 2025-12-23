@@ -1,10 +1,11 @@
 import type { NextConfig } from 'next';
+import withFlowbiteReact from 'flowbite-react/plugin/nextjs';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['cards.scryfall.io'],
+    remotePatterns: [{ hostname: 'cards.scryfall.io' }],
   },
   /* config options here */
 };
 
-export default nextConfig;
+export default withFlowbiteReact(nextConfig);

@@ -1,0 +1,194 @@
+/* Backoffice Styles - Modern CMS Design */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@import 'tailwindcss';
+@import 'flowbite-react/plugin/tailwindcss';
+@source '../../.flowbite-react/class-list.json';
+@import 'flowbite';
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Brand colors - Modern Monochrome */
+  --color-bo-primary: #18181b; /* Zinc 900 - Primary actions */
+  --color-bo-primary-dark: #09090b; /* Zinc 950 - Primary dark */
+  --color-bo-primary-light: #f4f4f5; /* Zinc 100 - Primary light */
+  --color-bo-primary-hover: #27272a; /* Zinc 800 - Primary hover */
+
+  --color-bo-secondary: #52525b; /* Zinc 600 - Accent */
+  --color-bo-secondary-dark: #3f3f46; /* Zinc 700 - Secondary dark */
+  --color-bo-secondary-light: #e4e4e7; /* Zinc 200 - Secondary light */
+
+  --color-bo-success: #10b981; /* Green for success */
+  --color-bo-danger: #ef4444; /* Red for danger */
+
+  /* Modern backgrounds with depth */
+  --color-bo-bg-main: #f8fafc; /* Slate 50 - Main background */
+  --color-bo-bg-card: #ffffff;
+  --color-bo-bg-elevated: #ffffff;
+  --color-bo-bg-sidebar: #1e293b; /* Slate 800 - Dark sidebar */
+  --color-bo-bg-header: #ffffff;
+  --color-bo-bg-hover: #f1f5f9; /* Slate 100 */
+
+  /* Text colors with better hierarchy */
+  --color-bo-text-primary: #0f172a; /* Slate 900 */
+  --color-bo-text-secondary: #64748b; /* Slate 500 */
+  --color-bo-text-tertiary: #94a3b8; /* Slate 400 */
+  --color-bo-text-light: #f8fafc; /* Slate 50 */
+  --color-bo-text-inverse: #ffffff;
+
+  /* Modern borders */
+  --color-bo-border: #e2e8f0; /* Slate 200 */
+  --color-bo-border-medium: #cbd5e1; /* Slate 300 */
+  --color-bo-border-strong: #94a3b8; /* Slate 400 */
+
+  /* Shadows for depth */
+  --shadow-bo-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-bo-md:
+    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-bo-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-bo-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Global backoffice layout */
+.backoffice-layout {
+  @apply bg-bo-bg-main min-h-screen w-screen font-sans antialiased;
+}
+
+/* Modern card styles */
+.backoffice-card {
+  @apply border-bo-border bg-bo-bg-card rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md;
+}
+
+.backoffice-card-elevated {
+  @apply border-bo-border bg-bo-bg-elevated rounded-xl border shadow-md;
+}
+
+/* Header with gradient accent */
+.backoffice-header {
+  @apply border-bo-border bg-bo-bg-header rounded-xl border shadow-lg backdrop-blur-sm;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Sidebar with dark modern look */
+.backoffice-sidebar {
+  @apply border-bo-border rounded-xl border bg-white shadow-sm transition-all duration-200;
+}
+
+/* Modern buttons */
+.backoffice-button-primary {
+  @apply bg-bo-primary hover:bg-bo-primary-hover rounded-lg px-4 py-2.5 font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none;
+}
+
+.backoffice-button-secondary {
+  @apply border-bo-border text-bo-text-primary hover:bg-bo-bg-hover hover:border-bo-border-medium rounded-lg border bg-white px-4 py-2.5 font-semibold shadow-sm transition-all duration-200 focus:outline-none;
+}
+
+.backoffice-button-ghost {
+  @apply text-bo-text-secondary hover:bg-bo-bg-hover hover:text-bo-text-primary rounded-lg px-4 py-2.5 font-semibold transition-all duration-200;
+}
+
+/* Modern inputs */
+.backoffice-input {
+  @apply border-bo-border text-bo-text-primary placeholder-bo-text-tertiary focus:border-bo-primary w-full rounded-lg border bg-white px-3.5 py-2.5 shadow-sm transition-all duration-200 focus:outline-none;
+}
+
+/* Table styles */
+.backoffice-table-header {
+  @apply bg-bo-bg-hover text-bo-text-secondary text-xs font-bold tracking-wider uppercase;
+}
+
+.backoffice-table-row {
+  @apply border-bo-border hover:bg-bo-bg-hover/50 border-b transition-colors duration-150;
+}
+
+/* Badge styles */
+.backoffice-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+.backoffice-badge-primary {
+  @apply bg-zinc-100 text-zinc-800;
+}
+
+.backoffice-badge-success {
+  @apply bg-emerald-100 text-emerald-800;
+}
+
+.backoffice-badge-warning {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.backoffice-badge-danger {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Menu item active state */
+.backoffice-menu-item {
+  @apply w-full rounded-lg px-4 py-2.5 text-left font-medium text-slate-700 transition-all duration-200 hover:bg-slate-100;
+}
+
+.backoffice-menu-item-active {
+  @apply bg-linear-to-r from-zinc-900 to-zinc-800 text-white shadow-md hover:from-zinc-800 hover:to-zinc-700;
+}
+
+/* Scroll styling */
+.backoffice-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.backoffice-scrollbar::-webkit-scrollbar-track {
+  @apply rounded-lg bg-slate-100;
+}
+
+.backoffice-scrollbar::-webkit-scrollbar-thumb {
+  @apply rounded-lg bg-slate-300 hover:bg-slate-400;
+}
+
+/* Modern animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.backoffice-animate-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Typography - Section Headers */
+h1 {
+  @apply text-2xl font-bold text-slate-900;
+}
+
+h2 {
+  @apply text-xl font-semibold text-slate-900;
+}
+
+h3 {
+  @apply text-lg font-semibold text-slate-900;
+}
+
+h4 {
+  @apply text-base font-semibold text-slate-900;
+}
+
+.backoffice-section-description {
+  @apply text-sm text-slate-500;
+}
