@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
 import SearchBar from '@/components/SearchBar';
-import { Button, Card, Pagination, Select } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
+import { Dropdown } from '@/components/ui/Dropdown';
 import CardDetailModal from './CardDetailModal';
 import CardItem from './CardItem';
 import type { Filters } from './CatalogClient';
-import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
+import type { CardOffer } from '@/types/card';
 
 type Props = {
-  offers: any[];
+  offers: CardOffer[];
   fxRate?: number;
   minCardPriceClp?: number;
   filters: Filters;
@@ -24,42 +25,20 @@ export default function RightSheet({
   filters,
   onOpenFilters,
 }: Props) {
-  const [displayed, setDisplayed] = useState<any[]>(offers ?? []);
+  const [displayed, setDisplayed] = useState<CardOffer[]>(offers ?? []);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedOffer, setSelectedOffer] = useState<any | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<CardOffer | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [gridVisible, setGridVisible] = useState(true);
+
   const [sortBy, setSortBy] = useState('newest');
 
-  // Calcular items por página según el tamaño de pantalla
-  const [itemsPerPage, setItemsPerPage] = useState(12);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        // Mobile: 1 columna × 6 filas = 6 items
-        setItemsPerPage(6);
-      } else if (window.innerWidth < 768) {
-        // SM: 2 columnas × 3 filas = 6 items
-        setItemsPerPage(6);
-      } else if (window.innerWidth < 1024) {
-        // MD: 3 columnas × 3 filas = 9 items
-        setItemsPerPage(9);
-      } else {
-        // LG+: 5 columnas × 3 filas = 15 items
-        setItemsPerPage(15);
-      }
-    };
-
-    handleResize(); // Calcular al montar
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const itemsPerPage = 8;
 
   // Aplicar filtros a las ofertas
   const applyFilters = useCallback(
-    (offersList: any[]) => {
+    (offersList: CardOffer[]) => {
       let filtered = offersList;
 
       // Filtro de idioma
@@ -92,7 +71,7 @@ export default function RightSheet({
       // Filtro de rareza
       if (filters.rarity && filters.rarity !== 'all') {
         filtered = filtered.filter((offer) => {
-          const card = offer.cards ?? offer.card ?? null;
+          const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
           return card?.rarity?.toLowerCase() === filters.rarity.toLowerCase();
         });
       }
@@ -100,7 +79,7 @@ export default function RightSheet({
       // Filtro de colores (coincide si la carta tiene TODOS los colores seleccionados)
       if (filters.colors && filters.colors.length > 0) {
         filtered = filtered.filter((offer) => {
-          const card = offer.cards ?? offer.card ?? null;
+          const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
           const cardColors = card?.color_identity || card?.colors || [];
           // Verificar que la carta contenga todos los colores seleccionados
           return filters.colors.every((selectedColor) =>
@@ -112,7 +91,7 @@ export default function RightSheet({
       // Filtro de expansión/set
       if (filters.set_name && filters.set_name !== 'all') {
         filtered = filtered.filter((offer) => {
-          const card = offer.cards ?? offer.card ?? null;
+          const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
           return (
             card?.set_name?.toLowerCase() === filters.set_name.toLowerCase()
           );
@@ -131,7 +110,7 @@ export default function RightSheet({
       // Filtro de tipo de carta
       if (filters.type_line && filters.type_line !== 'all') {
         filtered = filtered.filter((offer) => {
-          const card = offer.cards ?? offer.card ?? null;
+          const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
           const typeLine = card?.type_line || '';
           // Verificar si el tipo está incluido en type_line (ej: "Creature — Human" incluye "Creature")
           return typeLine.includes(filters.type_line);
@@ -148,13 +127,13 @@ export default function RightSheet({
           switch (sortBy) {
             case 'newest':
               return (
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime()
+                new Date(b.created_at ?? 0).getTime() -
+                new Date(a.created_at ?? 0).getTime()
               );
             case 'oldest':
               return (
-                new Date(a.created_at).getTime() -
-                new Date(b.created_at).getTime()
+                new Date(a.created_at ?? 0).getTime() -
+                new Date(b.created_at ?? 0).getTime()
               );
             case 'price_asc': {
               const priceA = fxRate
@@ -239,7 +218,6 @@ export default function RightSheet({
 
   const doSearch = useCallback(
     async (q: string) => {
-      setSearchQuery(q);
       // si cadena vacía, restaurar ofertas iniciales con filtros
       if (!q) {
         const filtered = applyFilters(offers ?? []);
@@ -254,7 +232,7 @@ export default function RightSheet({
         if (!res.ok) throw new Error('search request failed');
         const json = await res.json();
         // endpoint devuelve { data: [...] }
-        const items = (json.data ?? []) as any[];
+        const items = (json.data ?? []) as CardOffer[];
         // Filtrar en cliente por seguridad: solo mostrar los items cuyo nombre de carta
         // contenga la query (case-insensitive). Manejar diferentes shapes (cards vs card)
         const qLower = q.toLowerCase();
@@ -287,12 +265,14 @@ export default function RightSheet({
   const currentItems = displayed.slice(startIndex, endIndex);
 
   const onPageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll suave al inicio de la sección
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setGridVisible(false);
+    setTimeout(() => {
+      setCurrentPage(page);
+      setGridVisible(true);
+    }, 200);
   };
 
-  const openModal = (offer: any) => {
+  const openModal = (offer: CardOffer) => {
     setSelectedOffer(offer);
     setShowModal(true);
   };
@@ -303,9 +283,9 @@ export default function RightSheet({
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-4">
+      <div>
+        <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/40 px-4 py-2 shadow-[0_6px_24px_rgba(0,0,0,0.55)] lg:flex-row lg:items-center lg:justify-between">
           {/* SearchBar */}
           <div className="flex-1">
             <SearchBar
@@ -317,22 +297,21 @@ export default function RightSheet({
 
           {/* Ordenar por - Desktop */}
           <div className="hidden lg:block">
-            <Select
+            <Dropdown
               value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-              }}
+              onChange={setSortBy}
               className="w-48"
-            >
-              <option value="newest">Más recientes</option>
-              <option value="oldest">Más antiguos</option>
-              <option value="price_asc">Precio: ↑</option>
-              <option value="price_desc">Precio: ↓</option>
-              <option value="name_asc">Nombre: A-Z</option>
-              <option value="name_desc">Nombre: Z-A</option>
-              <option value="rarity_asc">Rareza: ↑</option>
-              <option value="rarity_desc">Rareza: ↓</option>
-            </Select>
+              options={[
+                { value: 'newest', label: 'Más recientes' },
+                { value: 'oldest', label: 'Más antiguos' },
+                { value: 'price_asc', label: 'Precio: ↑' },
+                { value: 'price_desc', label: 'Precio: ↓' },
+                { value: 'name_asc', label: 'Nombre: A-Z' },
+                { value: 'name_desc', label: 'Nombre: Z-A' },
+                { value: 'rarity_asc', label: 'Rareza: ↑' },
+                { value: 'rarity_desc', label: 'Rareza: ↓' },
+              ]}
+            />
           </div>
 
           {/* Botón Filtrar - solo mobile */}
@@ -364,19 +343,11 @@ export default function RightSheet({
             {displayed.length === 1 ? 'carta' : 'cartas'}
           </div>
         </div>
-
-        {/* Resultados count - Mobile */}
-        <div className="mt-3 text-center text-sm text-gray-600 lg:hidden">
-          <span className="font-semibold text-purple-600">
-            {displayed.length}
-          </span>{' '}
-          {displayed.length === 1 ? 'carta encontrada' : 'cartas encontradas'}
-        </div>
-      </Card>
+      </div>
 
       {/* Grid de cartas */}
       {displayed.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl bg-white p-12 text-center shadow-md">
+        <div className="m-auto flex flex-col items-center justify-center rounded-xl text-center">
           <svg
             className="mb-4 h-16 w-16 text-gray-300"
             fill="none"
@@ -401,9 +372,9 @@ export default function RightSheet({
         <>
           {/* Grid de productos */}
           <div
-            className="grid gap-4"
+            className={`grid gap-6 transition-all duration-200 ${gridVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}
             style={{
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(4, 1fr)',
             }}
           >
             {currentItems.map((o) => (
@@ -427,7 +398,7 @@ export default function RightSheet({
                 showIcons
                 previousLabel="Anterior"
                 nextLabel="Siguiente"
-                className="rounded-lg bg-white px-4 py-2 shadow-md"
+                className="rounded-lg bg-black/40 px-4 py-2 shadow-md"
               />
             </div>
           )}

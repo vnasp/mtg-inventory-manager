@@ -1,9 +1,7 @@
 import { cookies } from 'next/headers';
 import { createClient as createServerSupabase } from '@/utils/supabase/server';
 import CatalogClient from '@/components/CatalogClient';
-import TopBar from '@/components/TopBar';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import type { CardOffer } from '@/types/card';
 import '@/app/globals.css';
 
 export default async function Page() {
@@ -11,16 +9,16 @@ export default async function Page() {
   const supabase = createServerSupabase(cookieStore);
 
   const offersRes = await supabase
-    .from('card_offers')
+    .from('mtg_card_offers')
     .select(
-      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, name, set_name, set_code, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
+      `id, card_id, foil, language, condition, quantity, price_usd, price_source, price_updated_at, active, variant_sku, created_at, updated_at, mtg_cards(id, name, set_name, set_code, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`
     )
     .eq('active', true)
     .gt('quantity', 0)
     .order('created_at', { ascending: false });
 
   const settingsRes = await supabase
-    .from('settings')
+    .from('mtg_settings')
     .select('value')
     .eq('key', 'mtg')
     .limit(1)
@@ -35,32 +33,31 @@ export default async function Page() {
     );
   }
 
-  const data = offersRes.data as any[] | null;
-  const setting = (settingsRes as any)?.data;
-
-  const offers = (data ?? []) as any[];
+  const offers = (offersRes.data ?? []) as unknown as CardOffer[];
+  const settingRecord = settingsRes.data;
 
   // Resolve fx rate and min price from MTG settings
   let fxRate: number;
   let minCardPriceClp = 499; // default
 
   try {
-    if (setting && setting.value != null) {
-      const settingValue =
-        typeof setting.value === 'object'
-          ? setting.value
-          : JSON.parse(String(setting.value));
+    if (settingRecord && settingRecord.value != null) {
+      const raw = settingRecord.value;
+      const settingValue: Record<string, unknown> =
+        typeof raw === 'object'
+          ? (raw as Record<string, unknown>)
+          : (JSON.parse(String(raw)) as Record<string, unknown>);
 
-      // Get fx_usdclp.rate
-      if (settingValue.fx_usdclp?.rate) {
-        fxRate = Number(settingValue.fx_usdclp.rate);
+      const fxConfig = settingValue.fx_usdclp as { rate?: number } | undefined;
+      if (fxConfig?.rate) {
+        fxRate = Number(fxConfig.rate);
       } else {
         throw new Error('FX rate not configured in MTG settings');
       }
 
-      // Get min_card_price_clp.amount
-      if (settingValue.min_card_price_clp?.amount !== undefined) {
-        minCardPriceClp = Number(settingValue.min_card_price_clp.amount);
+      const priceConfig = settingValue.min_card_price_clp as { amount?: number } | undefined;
+      if (priceConfig?.amount !== undefined) {
+        minCardPriceClp = Number(priceConfig.amount);
       }
     } else {
       throw new Error('MTG settings not configured');
@@ -73,20 +70,10 @@ export default async function Page() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <TopBar />
-      <Header />
-
-      {/* Main content */}
-      <main className="container mx-auto flex-1 px-4 py-8">
-        <CatalogClient
-          offers={offers}
-          fxRate={fxRate}
-          minCardPriceClp={minCardPriceClp}
-        />
-      </main>
-
-      <Footer />
-    </div>
+    <CatalogClient
+      offers={offers}
+      fxRate={fxRate!}
+      minCardPriceClp={minCardPriceClp}
+    />
   );
 }

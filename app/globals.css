@@ -1,75 +1,19 @@
-/* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
-
 @import 'tailwindcss';
-@plugin 'flowbite-react/plugin/tailwindcss';
-@source '../.flowbite-react/class-list.json';
-@import 'flowbite/dist/flowbite.css';
+@source '../app/**/*.{ts,tsx}';
+@source '../components/**/*.{ts,tsx}';
 
 @theme {
-  --font-family-sans: 'Poppins', 'Inter', sans-serif;
+  --font-family-sans: var(--font-nunito), sans-serif;
 }
 
-:root {
-  font-family: var(--font-family-sans);
+@utility bg-blue-diagonal {
+  background: linear-gradient(135deg, #2563eb 0%, #0f2a7a 100%);
 }
 
 body {
-  font-family: var(--font-family-sans);
-  background: linear-gradient(
-    to bottom right,
-    rgb(250 245 255),
-    rgb(255 255 255),
-    rgb(239 246 255)
-  );
-  color: rgb(17 24 39);
-  min-height: 100vh;
+  @apply h-screen;
 }
 
-h1 {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: rgb(31 41 55);
-}
-
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 1.875rem;
-  }
-}
-
-/* Animaciones personalizadas */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes shine {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-shine {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.5),
-    transparent
-  );
-  background-size: 200% 100%;
-  animation: shine 2s infinite;
+button {
+  @apply cursor-pointer;
 }

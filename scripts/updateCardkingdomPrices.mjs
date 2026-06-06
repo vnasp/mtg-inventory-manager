@@ -104,18 +104,18 @@ async function main() {
 async function updateCardOfferPrices() {
   // Obtener todas las card_offers activas con su mtgjson_uuid
   const { data: offers, error: offersError } = await supabase
-    .from('card_offers')
+    .from('mtg_card_offers')
     .select(
       `
       id,
       foil,
-      cards!inner (
+      mtg_cards!inner (
         mtgjson_uuid
       )
     `
     )
     .eq('active', true)
-    .not('cards.mtgjson_uuid', 'is', null);
+    .not('mtg_cards.mtgjson_uuid', 'is', null);
 
   if (offersError) {
     console.error('Error obteniendo card_offers:', offersError);
@@ -137,7 +137,7 @@ async function updateCardOfferPrices() {
     const batch = offers.slice(i, i + 100);
 
     for (const offer of batch) {
-      const mtgjsonUuid = offer.cards.mtgjson_uuid;
+      const mtgjsonUuid = offer.mtg_cards.mtgjson_uuid;
       const isNonfoil = offer.foil === 'nonfoil';
       const isFoil = offer.foil === 'foil';
 
@@ -166,7 +166,7 @@ async function updateCardOfferPrices() {
 
       // Actualizar card_offer
       const { error: updateError } = await supabase
-        .from('card_offers')
+        .from('mtg_card_offers')
         .update({
           price_usd: newPrice,
           price_source: 'cardkingdom',

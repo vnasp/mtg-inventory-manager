@@ -1,6 +1,7 @@
 'use client';
 
-import { TextInput, Spinner } from 'flowbite-react';
+import { TextInput } from '@/components/ui/TextInput';
+import { Spinner } from '@/components/ui/Spinner';
 import React, { useEffect, useState } from 'react';
 
 type Props = {

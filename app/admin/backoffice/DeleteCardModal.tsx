@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
-import { Modal, Button } from 'flowbite-react';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { HiExclamationCircle } from 'react-icons/hi';
 
 type DeleteCardModalProps = {

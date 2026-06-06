@@ -1,16 +1,9 @@
 'use client';
 import React from 'react';
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  TextInput,
-  Pagination,
-} from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from '@/components/ui/Table';
+import { TextInput } from '@/components/ui/TextInput';
+import { Pagination } from '@/components/ui/Pagination';
 import Image from 'next/image';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 
@@ -60,6 +53,25 @@ const getPriceSourceFullName = (source: string): string => {
   }
 };
 
+function SortIcon({ field, sortField, sortDirection }: { field: string; sortField: string; sortDirection: 'asc' | 'desc' }) {
+  if (sortField !== field) {
+    return (
+      <svg className="ml-1 inline h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+      </svg>
+    );
+  }
+  return sortDirection === 'asc' ? (
+    <svg className="ml-1 inline h-4 w-4 text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+    </svg>
+  ) : (
+    <svg className="ml-1 inline h-4 w-4 text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
 // Helper para mapear condición a siglas
 const mapConditionToAbbrev = (condition: string): string => {
   switch (condition) {
@@ -91,7 +103,7 @@ type CardOffer = {
   markup_percent: number;
   price_source: string;
   active: boolean;
-  cards: {
+  mtg_cards: {
     id: string;
     name: string;
     set_code: string;
@@ -163,55 +175,6 @@ export default function InventoryTable({
     items.some((offer) => selectedOfferIds.has(offer.id)) &&
     !isAllSelected;
 
-  const SortIcon = ({ field }: { field: string }) => {
-    if (sortField !== field) {
-      return (
-        <svg
-          className="ml-1 inline h-4 w-4 text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-          />
-        </svg>
-      );
-    }
-    return sortDirection === 'asc' ? (
-      <svg
-        className="ml-1 inline h-4 w-4 text-zinc-900"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 15l7-7 7 7"
-        />
-      </svg>
-    ) : (
-      <svg
-        className="ml-1 inline h-4 w-4 text-zinc-900"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M19 9l-7 7-7-7"
-        />
-      </svg>
-    );
-  };
-
   return (
     <div className="overflow-x-auto">
       {loading && (
@@ -242,49 +205,49 @@ export default function InventoryTable({
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('name')}
             >
-              Nombre <SortIcon field="name" />
+              Nombre <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('set')}
             >
-              Set <SortIcon field="set" />
+              Set <SortIcon field="set" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('foil')}
             >
-              Foil <SortIcon field="foil" />
+              Foil <SortIcon field="foil" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('condition')}
             >
-              Condición <SortIcon field="condition" />
+              Condición <SortIcon field="condition" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('price')}
             >
-              Precio <SortIcon field="price" />
+              Precio <SortIcon field="price" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('price_source')}
             >
-              Fuente <SortIcon field="price_source" />
+              Fuente <SortIcon field="price_source" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('stock')}
             >
-              Stock <SortIcon field="stock" />
+              Stock <SortIcon field="stock" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell
               className="cursor-pointer px-6 py-3 whitespace-nowrap hover:bg-gray-100"
               onClick={() => onSort('active')}
             >
-              Activa <SortIcon field="active" />
+              Activa <SortIcon field="active" sortField={sortField} sortDirection={sortDirection} />
             </TableHeadCell>
             <TableHeadCell className="px-6 py-3 whitespace-nowrap">
               Acciones
@@ -308,10 +271,10 @@ export default function InventoryTable({
                   />
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  {offer.cards.image_url ? (
+                  {offer.mtg_cards.image_url ? (
                     <Image
-                      src={offer.cards.image_url}
-                      alt={offer.cards.name}
+                      src={offer.mtg_cards.image_url}
+                      alt={offer.mtg_cards.name}
                       width={50}
                       height={70}
                       className="rounded"
@@ -321,11 +284,11 @@ export default function InventoryTable({
                   )}
                 </TableCell>
                 <TableCell className="px-6 py-4 font-medium text-gray-900">
-                  {offer.cards.name}
+                  {offer.mtg_cards.name}
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  {offer.cards.set_code.toUpperCase()} #
-                  {offer.cards.collector_number}
+                  {offer.mtg_cards.set_code.toUpperCase()} #
+                  {offer.mtg_cards.collector_number}
                 </TableCell>
                 <TableCell className="px-6 py-4">
                   <span

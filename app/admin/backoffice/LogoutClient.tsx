@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Button } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
 
 const supabase = createClient();
 
@@ -9,7 +9,7 @@ export default function LogoutClient() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-    } catch (e) {
+    } catch {
       // ignore
     }
     // redirect to login

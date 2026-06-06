@@ -16,7 +16,7 @@ export default async function Page() {
 
   // Obtener datos del perfil
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('mtg_profiles')
     .select('first_name, last_name')
     .eq('id', user.id)
     .single();

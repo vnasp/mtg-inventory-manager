@@ -1,4 +1,10 @@
 'use client';
+
+// React & libraries
+import { useEffect, useState } from 'react';
+import { HiPencil } from 'react-icons/hi';
+
+// UI Components
 import {
   Table,
   TableBody,
@@ -6,16 +12,18 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-  Button,
-  Modal,
-  Label,
-  TextInput,
-  Card,
-} from 'flowbite-react';
-import { useEffect, useState } from 'react';
+} from '@/components/ui/Table';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { Label } from '@/components/ui/Label';
+import { TextInput } from '@/components/ui/TextInput';
+import { Card } from '@/components/ui/Card';
+
+// Hooks and internals
 import { createClient } from '@/utils/supabase/client';
+
+// Components
 import Spinner from '@/components/Spinner';
-import { HiPencil } from 'react-icons/hi';
 
 interface Profile {
   id: string;
@@ -41,7 +49,7 @@ export default function Users() {
       try {
         const supabase = createClient();
         const { data, error } = await supabase
-          .from('profiles')
+          .from('mtg_profiles')
           .select('id, email, first_name, last_name, role')
           .order('email', { ascending: true });
 
@@ -74,7 +82,7 @@ export default function Users() {
     try {
       const supabase = createClient();
       const { error } = await supabase
-        .from('profiles')
+        .from('mtg_profiles')
         .update({
           email: editEmail,
           first_name: editFirstName,
@@ -124,7 +132,7 @@ export default function Users() {
       <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6">
           <h1>Gestión de Usuarios</h1>
-          <p className="backoffice-section-description">
+          <p className="text-sm text-slate-500">
             Administra los usuarios del sistema
           </p>
         </div>
@@ -136,10 +144,10 @@ export default function Users() {
   }
 
   return (
-    <Card>
+    <Card className="border-zinc-200 bg-white">
       <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Gestión de Usuarios</h1>
-        <p className="backoffice-section-description">
+        <p className="text-sm text-slate-500">
           Administra los usuarios del sistema
         </p>
       </div>
