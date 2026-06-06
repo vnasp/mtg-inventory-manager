@@ -2,14 +2,16 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Modal, Button, ModalBody, ModalFooter } from 'flowbite-react';
+import { Modal, ModalBody, ModalFooter } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 import { calculatePriceClp } from '@/utils/priceCalculations';
+import type { CardOffer } from '@/types/card';
 
 type Props = {
   show: boolean;
   onClose: () => void;
-  offer: any | null;
+  offer: CardOffer | null;
   fxRate?: number;
   minCardPriceClp?: number;
 };
@@ -23,7 +25,7 @@ export default function CardDetailModal({
 }: Props) {
   if (!offer) return null;
 
-  const card = offer.cards ?? offer.card ?? null;
+  const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
   const priceUsd = Number(offer.price_usd ?? 0);
   const markupPercent = Number(offer.markup_percent ?? 0);
 

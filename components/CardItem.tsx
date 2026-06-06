@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
-import { Badge } from 'flowbite-react';
+import { Badge } from '@/components/ui/Badge';
 import { mapConditionToSpanish, mapFoilToSpanish } from '@/utils/cardHelpers';
 import { calculatePriceClp } from '@/utils/priceCalculations';
+import type { CardOffer } from '@/types/card';
 
 type Props = {
-  offer: any;
+  offer: CardOffer;
   fxRate?: number;
   minCardPriceClp?: number;
   onClick: () => void;
@@ -19,7 +19,7 @@ export default function CardItem({
   minCardPriceClp,
   onClick,
 }: Props) {
-  const card = offer.cards ?? offer.card ?? null;
+  const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
 
   // Precio en USD desde la oferta (fallback a 0 si no existe)
   const priceUsd = Number(offer.price_usd ?? 0);
@@ -56,50 +56,31 @@ export default function CardItem({
   return (
     <article
       onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-800 shadow-md transition-all duration-300 hover:scale-105"
     >
       {/* Imagen de la carta */}
-      <div className="relative aspect-5/7 overflow-hidden bg-linear-to-br from-purple-100 to-pink-100">
-        {card?.image_url ? (
+      <div className="relative aspect-5/7 w-full overflow-hidden">
+        {card?.image_url && (
           <Image
             src={card.image_url}
             alt={card.name}
-            width={200}
-            height={280}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover"
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-400">
-            <svg
-              className="h-16 w-16"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
         )}
-
-        {/* Overlay con efecto hover */}
-        <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10" />
       </div>
 
       {/* Info de la carta */}
-      <div className="space-y-2 p-3">
+      <div className="absolute bottom-0 w-full translate-y-full space-y-1 bg-black/70 p-3 transition-transform duration-300 group-hover:translate-y-0">
         {/* Nombre de la carta */}
-        <h3 className="line-clamp-1 text-sm font-semibold text-gray-900 lg:text-base">
+        <h3 className="line-clamp-1 text-sm font-semibold text-white lg:text-base">
           {card?.name || 'Sin nombre'}
         </h3>
 
         {/* Set */}
         {card?.set_name && (
-          <p className="line-clamp-1 text-xs text-gray-500">{card.set_name}</p>
+          <p className="line-clamp-1 text-xs text-white">{card.set_name}</p>
         )}
 
         {/* Badge de condición y foil */}
@@ -127,7 +108,7 @@ export default function CardItem({
 
         {/* Precio */}
         <div className="pt-1">
-          <span className="text-xl font-bold text-purple-600 lg:text-2xl">
+          <span className="text-xl font-bold text-blue-500! lg:text-2xl">
             {formattedPrice}
           </span>
         </div>
