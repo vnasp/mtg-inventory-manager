@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabase } from '@supabase/supabase-js';
 import { createAdminClient } from '@/utils/supabase/admin';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function GET(req: Request) {
   try {
-    const supabase = createSupabase(supabaseUrl, supabaseKey);
+    const supabase = createAdminClient();
     const { searchParams } = new URL(req.url);
-    const game = searchParams.get('game'); // 'mtg', 'pokemon', o 'global'
+    const game = searchParams.get('game'); // 'mtg'
 
     if (!game) {
       return NextResponse.json(
@@ -20,7 +16,7 @@ export async function GET(req: Request) {
 
     // Obtener configuración específica del juego
     const { data, error } = await supabase
-      .from('settings')
+      .from('mtg_settings')
       .select('value')
       .eq('key', game)
       .limit(1)
@@ -30,15 +26,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const record = data as any;
     let settings = {};
 
-    if (record && record.value != null) {
+    if (data && data.value != null) {
       try {
-        if (typeof record.value === 'object') {
-          settings = record.value;
+        if (typeof data.value === 'object') {
+          settings = data.value as Record<string, unknown>;
         } else {
-          settings = JSON.parse(String(record.value));
+          settings = JSON.parse(String(data.value)) as Record<string, unknown>;
         }
       } catch (e) {
         console.error('Error parsing settings:', e);
@@ -46,10 +41,10 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(settings);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -71,7 +66,7 @@ export async function PUT(req: Request) {
     }
 
     // Validar según el tipo de clave
-    if (key === 'mtg' || key === 'pokemon') {
+    if (key === 'mtg') {
       if (typeof value === 'object') {
         if (value.fx_usdclp?.rate !== undefined) {
           const rate = Number(value.fx_usdclp.rate);
@@ -92,18 +87,11 @@ export async function PUT(req: Request) {
           }
         }
       }
-    } else if (key === 'global') {
-      if (typeof value === 'object' && value.contact_info) {
-        // Validación básica de contact_info - todos los campos son opcionales
-        const { email, phone, instagram, facebook, x, address } =
-          value.contact_info;
-        // No se requiere validación estricta, todos son strings opcionales
-      }
     }
 
     // Intentar actualizar el registro existente
     const { data: updateData, error: updateError } = await supabase
-      .from('settings')
+      .from('mtg_settings')
       .update({ value, updated_at: new Date().toISOString() })
       .eq('key', key)
       .select();
@@ -111,7 +99,7 @@ export async function PUT(req: Request) {
     // Si no existe, crear uno nuevo
     if (updateError || !updateData || updateData.length === 0) {
       const { data: insertData, error: insertError } = await supabase
-        .from('settings')
+        .from('mtg_settings')
         .insert({ key, value })
         .select();
 
@@ -126,10 +114,10 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json({ success: true, data: updateData });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

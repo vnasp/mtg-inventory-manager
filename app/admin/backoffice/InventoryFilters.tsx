@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { TextInput } from 'flowbite-react';
+import { TextInput } from '@/components/ui/TextInput';
 
 type InventoryFiltersProps = {
   searchQuery: string;

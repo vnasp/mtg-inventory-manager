@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('find-uuid error:', error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? 'Error interno' },
+      { error: error instanceof Error ? error.message : 'Error interno' },
       { status: 500 }
     );
   }

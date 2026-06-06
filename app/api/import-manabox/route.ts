@@ -90,7 +90,7 @@ export async function POST(req: Request) {
 
         // Buscar oferta existente
         const { data: existingOffer } = await supabase
-          .from('card_offers')
+          .from('mtg_card_offers')
           .select('id, quantity')
           .match({
             card_id: cardId,
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
           const newQuantity = (existingOffer.quantity || 0) + quantity;
 
           const { error } = await supabase
-            .from('card_offers')
+            .from('mtg_card_offers')
             .update({
               quantity: newQuantity,
               price_usd: priceUsd,
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
             quantity,
           });
 
-          const { error } = await supabase.from('card_offers').insert({
+          const { error } = await supabase.from('mtg_card_offers').insert({
             card_id: cardId,
             foil: foilValue,
             language: language,
@@ -151,14 +151,15 @@ export async function POST(req: Request) {
         }
 
         results.push({ ok: true, row: row.Name });
-      } catch (e: any) {
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
         console.error(
           `[Import] Error en fila ${processed} (${row.Name}):`,
-          e.message
+          msg
         );
         results.push({
           ok: false,
-          error: e.message || 'Unknown error',
+          error: msg,
           row: row.Name,
         });
       }
@@ -180,10 +181,10 @@ export async function POST(req: Request) {
         errors: errorCount,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Import ManaBox error:', error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -223,7 +224,7 @@ function mapCondition(
 
 async function ensureCard(row: ManaBoxRow): Promise<number> {
   const supabase = createAdminClient();
-  const scryfallId = row['Scryfall ID'];
+  const scryfallId = row['Scryfall ID']?.trim();
 
   if (!scryfallId) {
     throw new Error('Scryfall ID is required');
@@ -231,7 +232,7 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
 
   // 1) Buscar en cards por scryfall_id
   const { data: existing, error } = await supabase
-    .from('cards')
+    .from('mtg_cards')
     .select('id')
     .eq('scryfall_id', scryfallId)
     .maybeSingle();
@@ -247,8 +248,10 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
 
   try {
-    const res = await fetch(`https://api.scryfall.com/cards/${scryfallId}`, {
+    const scryfallUrl = `https://api.scryfall.com/cards/${scryfallId}`;
+    const res = await fetch(scryfallUrl, {
       signal: controller.signal,
+      headers: { 'User-Agent': 'MTGInventoryManager/1.0 (contact: valentinamr@gmail.com)' },
     });
     clearTimeout(timeoutId);
 
@@ -292,7 +295,7 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
 
     // 3) Insertar nueva carta
     const { data: inserted, error: insertError } = await supabase
-      .from('cards')
+      .from('mtg_cards')
       .insert({
         scryfall_id: c.id,
         scryfall_oracle_id: c.oracle_id || null,
@@ -320,9 +323,9 @@ async function ensureCard(row: ManaBoxRow): Promise<number> {
     if (!inserted) throw new Error('Failed to insert card');
 
     return inserted.id;
-  } catch (e: any) {
+  } catch (e: unknown) {
     clearTimeout(timeoutId);
-    if (e.name === 'AbortError') {
+    if (e instanceof Error && e.name === 'AbortError') {
       throw new Error('Timeout al obtener carta de Scryfall');
     }
     throw e;

@@ -3,22 +3,13 @@ import { useState } from 'react';
 import CardSearch from './CardSearch';
 import CardInventory from './CardInventory';
 import Settings from './Settings';
-import PokemonSettings from './PokemonSettings';
-import GlobalSettings from './GlobalSettings';
 import Users from './Users';
 import BackofficeMenu from './BackofficeMenu';
 
+type Section = 'users' | 'mtg-add' | 'mtg-inventory' | 'mtg-settings';
+
 export default function BackofficeContent() {
-  const [activeSection, setActiveSection] = useState<
-    | 'users'
-    | 'mtg-add'
-    | 'mtg-inventory'
-    | 'mtg-settings'
-    | 'pokemon-add'
-    | 'pokemon-inventory'
-    | 'pokemon-settings'
-    | 'global-settings'
-  >('users');
+  const [activeSection, setActiveSection] = useState<Section>('users');
 
   return (
     <div className="flex h-full w-full flex-1 overflow-hidden">
@@ -36,22 +27,6 @@ export default function BackofficeContent() {
         {activeSection === 'mtg-add' && <CardSearch />}
         {activeSection === 'mtg-inventory' && <CardInventory />}
         {activeSection === 'mtg-settings' && <Settings />}
-        {activeSection === 'pokemon-add' && (
-          <div className="rounded-lg border border-slate-200 bg-white p-6">
-            <p className="text-slate-600">
-              Funcionalidad de agregar cartas Pokémon próximamente...
-            </p>
-          </div>
-        )}
-        {activeSection === 'pokemon-inventory' && (
-          <div className="rounded-lg border border-slate-200 bg-white p-6">
-            <p className="text-slate-600">
-              Inventario de cartas Pokémon próximamente...
-            </p>
-          </div>
-        )}
-        {activeSection === 'pokemon-settings' && <PokemonSettings />}
-        {activeSection === 'global-settings' && <GlobalSettings />}
       </main>
     </div>
   );

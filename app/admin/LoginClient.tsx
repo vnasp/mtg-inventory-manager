@@ -1,7 +1,9 @@
 'use client';
 import React, { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Button, Label, TextInput } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/Label';
+import { TextInput } from '@/components/ui/TextInput';
 import Image from 'next/image';
 
 const supabase = createClient();
@@ -31,8 +33,8 @@ export default function LoginClient() {
 
       // On success redirect to backoffice so the server page can validate the session
       window.location.href = '/admin/backoffice';
-    } catch (err: any) {
-      setMessage(err?.message ?? String(err));
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   };
@@ -94,7 +96,7 @@ export default function LoginClient() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-bo-primary w-full"
+              className="bg-zinc-900 hover:bg-zinc-800 w-full"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>

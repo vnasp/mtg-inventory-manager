@@ -1,23 +1,16 @@
 import type { Metadata } from 'next';
-import { ThemeModeScript, ThemeProvider } from 'flowbite-react';
-
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Nunito } from 'next/font/google';
 import './globals.css';
-import themeVG from '@/themeVG';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const nunito = Nunito({
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-nunito',
 });
 
 export const metadata: Metadata = {
-  title: 'VuduGaming - Catálogo de Cartas Magic the Gathering',
-  description: 'Catálogo de cartas Magic the Gathering - VuduGaming.cl',
+  title: 'MTG Inventory Manager - Catálogo de Cartas Magic the Gathering',
+  description: 'Catálogo de cartas Magic the Gathering',
 };
 
 export default function RootLayout({
@@ -27,13 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <ThemeModeScript />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider theme={themeVG}>{children}</ThemeProvider>
+      <body className={`${nunito.variable} font-sans antialiased`}>
+        {children}
       </body>
     </html>
   );

@@ -26,10 +26,12 @@ export async function POST(req: Request) {
       price_source = 'scryfall',
     } = body;
 
+    const jsonRaw = json_raw as Record<string, unknown> | null;
+
     // Prefer explicit language from payload; fallback to json_raw.lang if present; final fallback 'EN'
     const resolvedLanguage =
       (language as string | null) ??
-      (json_raw && (json_raw as any)?.lang) ??
+      (jsonRaw?.lang as string | undefined) ??
       'EN';
 
     if (!name || !set_code || !collector_number || !foil || !quantity) {
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
 
     if (scryfall_id) {
       const { data: existingById } = await supabase
-        .from('cards')
+        .from('mtg_cards')
         .select('id')
         .eq('scryfall_id', scryfall_id)
         .limit(1)
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
 
     if (!cardId) {
       const { data: existingByKey } = await supabase
-        .from('cards')
+        .from('mtg_cards')
         .select('id')
         .eq('set_code', set_code)
         .eq('collector_number', collector_number)
@@ -64,10 +66,6 @@ export async function POST(req: Request) {
     }
 
     const now = new Date().toISOString();
-
-    const sku = `${set_code.toLowerCase()}-${String(
-      collector_number
-    ).toLowerCase()}`;
 
     // Intentar obtener mtgjson_uuid
     let mtgjson_uuid: string | null = null;
@@ -105,59 +103,36 @@ export async function POST(req: Request) {
       // No fallar si no se puede obtener el UUID
     }
 
+    const cardData = {
+      scryfall_id,
+      scryfall_oracle_id: scryfall_oracle_id ?? jsonRaw?.oracle_id ?? null,
+      name,
+      set_code,
+      set_name,
+      collector_number,
+      type_line,
+      rarity: rarity ?? jsonRaw?.rarity ?? null,
+      colors: colors ?? jsonRaw?.colors ?? null,
+      color_identity: color_identity ?? jsonRaw?.color_identity ?? null,
+      image_url,
+      json_raw,
+      mtgjson_uuid,
+    };
+
     if (cardId) {
-      // update
-      const upd = await supabase
-        .from('cards')
-        .update({
-          scryfall_id,
-          scryfall_oracle_id:
-            scryfall_oracle_id ?? (json_raw as any)?.oracle_id ?? null,
-          name,
-          set_code,
-          set_name,
-          collector_number,
-          type_line,
-          rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
-          colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
-          color_identity:
-            (color_identity as any) ??
-            (json_raw as any)?.color_identity ??
-            null,
-          image_url,
-          json_raw,
-          mtgjson_uuid,
-          updated_at: now,
-        })
+      const { error: updError } = await supabase
+        .from('mtg_cards')
+        .update({ ...cardData, updated_at: now })
         .eq('id', cardId);
-      if ((upd as any).error) {
-        return NextResponse.json(
-          { error: (upd as any).error.message },
-          { status: 500 }
-        );
+      if (updError) {
+        return NextResponse.json({ error: updError.message }, { status: 500 });
       }
     } else {
       const insertRes = await supabase
-        .from('cards')
+        .from('mtg_cards')
         .insert([
           {
-            scryfall_id,
-            scryfall_oracle_id:
-              scryfall_oracle_id ?? (json_raw as any)?.oracle_id ?? null,
-            name,
-            set_code,
-            set_name,
-            collector_number,
-            type_line,
-            rarity: (rarity as any) ?? (json_raw as any)?.rarity ?? null,
-            colors: (colors as any) ?? (json_raw as any)?.colors ?? null,
-            color_identity:
-              (color_identity as any) ??
-              (json_raw as any)?.color_identity ??
-              null,
-            image_url,
-            json_raw,
-            mtgjson_uuid,
+            ...cardData,
             has_nonfoil: foil === 'nonfoil' ? true : null,
             has_foil: foil === 'foil' ? true : null,
             has_etched: foil === 'etched' ? true : null,
@@ -207,7 +182,7 @@ export async function POST(req: Request) {
     ).toLowerCase()}-${foil}-${resolvedLanguage}-${conditionCode}`;
 
     const { data: existingOffer } = await supabase
-      .from('card_offers')
+      .from('mtg_card_offers')
       .select('id, quantity')
       .match({ card_id: cardId, foil, language: resolvedLanguage, condition })
       .limit(1)
@@ -231,10 +206,6 @@ export async function POST(req: Request) {
       // returns void as $$
       //   update card_offers set quantity = greatest(0, coalesce(quantity,0) + inc), updated_at = now() where id = offer_id;
       // $$ language sql security definer;
-      //
-      // If the function exists, call it. If not, fallback to the previous read+write approach.
-
-      // Allow positive or negative increments; final quantity will be clamped to >= 0 by the DB function
 
       let rpcError = null;
       try {
@@ -242,16 +213,15 @@ export async function POST(req: Request) {
           offer_id: existingOffer.id,
           inc: incQuantity,
         });
-        // supabase.rpc returns { data, error }
-        if ((rpcRes as any).error) rpcError = (rpcRes as any).error;
+        if (rpcRes.error) rpcError = rpcRes.error;
       } catch (err) {
         rpcError = err;
       }
 
       if (!rpcError) {
         // Update snapshot fields (price, variant, flags)
-        const updOffer = await supabase
-          .from('card_offers')
+        const { error: updOfferError } = await supabase
+          .from('mtg_card_offers')
           .update({
             price_usd,
             price_source,
@@ -261,9 +231,9 @@ export async function POST(req: Request) {
             updated_at: now,
           })
           .eq('id', existingOffer.id);
-        if ((updOffer as any).error) {
+        if (updOfferError) {
           return NextResponse.json(
-            { error: (updOffer as any).error.message },
+            { error: updOfferError.message },
             { status: 500 }
           );
         }
@@ -273,8 +243,8 @@ export async function POST(req: Request) {
           0,
           (existingOffer.quantity || 0) + incQuantity
         );
-        const updOffer = await supabase
-          .from('card_offers')
+        const { error: updOfferError } = await supabase
+          .from('mtg_card_offers')
           .update({
             quantity: newQuantity,
             price_usd,
@@ -285,15 +255,15 @@ export async function POST(req: Request) {
             updated_at: now,
           })
           .eq('id', existingOffer.id);
-        if ((updOffer as any).error) {
+        if (updOfferError) {
           return NextResponse.json(
-            { error: (updOffer as any).error.message },
+            { error: updOfferError.message },
             { status: 500 }
           );
         }
       }
     } else {
-      const insOffer = await supabase.from('card_offers').insert([
+      const { error: insOfferError } = await supabase.from('mtg_card_offers').insert([
         {
           card_id: cardId,
           foil,
@@ -310,19 +280,19 @@ export async function POST(req: Request) {
           updated_at: now,
         },
       ]);
-      if ((insOffer as any).error) {
+      if (insOfferError) {
         return NextResponse.json(
-          { error: (insOffer as any).error.message },
+          { error: insOfferError.message },
           { status: 500 }
         );
       }
     }
 
     return NextResponse.json({ ok: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -353,9 +323,9 @@ export async function GET(req: Request) {
 
     // Construir query base
     let query = supabase
-      .from('card_offers')
+      .from('mtg_card_offers')
       .select(
-        `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, cards(id, scryfall_id, scryfall_oracle_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`,
+        `id, card_id, foil, language, condition, quantity, price_usd, markup_percent, price_source, price_updated_at, active, variant_sku, created_at, updated_at, mtg_cards(id, scryfall_id, scryfall_oracle_id, name, set_code, set_name, collector_number, type_line, image_url, sku, rarity, colors, color_identity)`,
         { count: 'exact' }
       );
 
@@ -366,14 +336,12 @@ export async function GET(req: Request) {
 
     // Si hay query 'q', filtrar por nombre de carta case-insensitive
     if (q && q.trim().length > 0) {
-      query = query.ilike('cards.name', `%${q}%`);
+      query = query.ilike('mtg_cards.name', `%${q}%`);
     }
 
     // Filtrar por código de set si existe
-    // Nota: Supabase no permite filtros OR complejos en relaciones
-    // Por ahora filtramos solo por set_code
     if (setCode && setCode.trim().length > 0) {
-      query = query.ilike('cards.set_code', `%${setCode}%`);
+      query = query.ilike('mtg_cards.set_code', `%${setCode}%`);
     }
 
     // Filtrar por rango de precio
@@ -389,10 +357,10 @@ export async function GET(req: Request) {
     if (sortField) {
       switch (sortField) {
         case 'name':
-          query = query.order('cards(name)', { ascending });
+          query = query.order('mtg_cards(name)', { ascending });
           break;
         case 'set':
-          query = query.order('cards(set_code)', { ascending });
+          query = query.order('mtg_cards(set_code)', { ascending });
           break;
         case 'price':
           query = query.order('price_usd', { ascending });
@@ -436,10 +404,10 @@ export async function GET(req: Request) {
         totalPages: Math.ceil((count ?? 0) / validPageSize),
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

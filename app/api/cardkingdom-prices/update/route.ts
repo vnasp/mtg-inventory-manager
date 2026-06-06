@@ -1,6 +1,7 @@
 import { gunzipSync } from 'zlib';
-import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+
+type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
 
 const MTGJSON_URL = 'https://mtgjson.com/api/v5/AllPricesToday.json.gz';
 
@@ -35,7 +36,7 @@ async function downloadAllPricesToday() {
   return json;
 }
 
-async function upsertInBatches(supabase: any, rows: any[], batchSize = 1000) {
+async function upsertInBatches(supabase: SupabaseAdminClient, rows: Record<string, unknown>[], batchSize = 1000) {
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
     const { error } = await supabase
@@ -49,20 +50,20 @@ async function upsertInBatches(supabase: any, rows: any[], batchSize = 1000) {
   }
 }
 
-async function updateCardOfferPrices(supabase: any) {
+async function updateCardOfferPrices(supabase: SupabaseAdminClient) {
   const { data: offers, error: offersError } = await supabase
-    .from('card_offers')
+    .from('mtg_card_offers')
     .select(
       `
       id,
       foil,
-      cards!inner (
+      mtg_cards!inner (
         mtgjson_uuid
       )
     `
     )
     .eq('active', true)
-    .not('cards.mtgjson_uuid', 'is', null);
+    .not('mtg_cards.mtgjson_uuid', 'is', null);
 
   if (offersError) {
     console.error('Error obteniendo card_offers:', offersError);
@@ -80,7 +81,7 @@ async function updateCardOfferPrices(supabase: any) {
     const batch = offers.slice(i, i + 100);
 
     for (const offer of batch) {
-      const mtgjsonUuid = offer.cards.mtgjson_uuid;
+      const mtgjsonUuid = (offer.mtg_cards as unknown as { mtgjson_uuid: string | null }).mtgjson_uuid;
       const isNonfoil = offer.foil === 'nonfoil';
       const isFoil = offer.foil === 'foil';
 
@@ -107,7 +108,7 @@ async function updateCardOfferPrices(supabase: any) {
       }
 
       const { error: updateError } = await supabase
-        .from('card_offers')
+        .from('mtg_card_offers')
         .update({
           price_usd: newPrice,
           price_source: 'cardkingdom',
@@ -126,7 +127,7 @@ async function updateCardOfferPrices(supabase: any) {
   return { updated: updatedCount, skipped: skippedCount };
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -152,14 +153,16 @@ export async function POST(request: Request) {
         const rows = [];
 
         for (const [uuid, entry] of Object.entries(data)) {
-          const paper = (entry as any).paper || {};
-          const ck = paper.cardkingdom || null;
-          const retail = ck?.retail || null;
+          type CKRetail = { normal?: Record<string, number>; foil?: Record<string, number> };
+          type CKPrices = { retail?: CKRetail };
+          const paper = ((entry as Record<string, unknown>).paper || {}) as Record<string, CKPrices>;
+          const ck: CKPrices | null = paper.cardkingdom || null;
+          const retail: CKRetail | null = ck?.retail || null;
 
           const nonfoilPrice = retail
-            ? getLatestFromDateMap(retail.normal)
+            ? getLatestFromDateMap(retail.normal ?? null)
             : null;
-          const foilPrice = retail ? getLatestFromDateMap(retail.foil) : null;
+          const foilPrice = retail ? getLatestFromDateMap(retail.foil ?? null) : null;
 
           if (nonfoilPrice == null && foilPrice == null) continue;
 
@@ -200,11 +203,11 @@ export async function POST(request: Request) {
         );
 
         controller.close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error al actualizar precios:', error);
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ error: error.message || 'Error al actualizar precios' })}\n\n`
+            `data: ${JSON.stringify({ error: error instanceof Error ? error.message : 'Error al actualizar precios' })}\n\n`
           )
         );
         controller.close();

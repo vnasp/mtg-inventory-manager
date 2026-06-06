@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const supabase = createAdminClient();
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       prices: pricesData?.updated_at || null,
       identifiers: identifiersData?.updated_at || null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching last update dates:', error);
     return NextResponse.json(
       { error: 'Error al obtener fechas de actualización' },

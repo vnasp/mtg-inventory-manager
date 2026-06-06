@@ -1,6 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Label, TextInput, Tooltip } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Label } from '@/components/ui/Label';
+import { TextInput } from '@/components/ui/TextInput';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { HiInformationCircle } from 'react-icons/hi';
 
 export default function Settings() {
@@ -118,9 +122,9 @@ export default function Settings() {
         type: 'success',
         text: 'Configuración actualizada correctamente',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setMessage({ type: 'error', text: err.message ?? 'Error al guardar' });
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Error al guardar' });
     } finally {
       setSaving(false);
     }
@@ -179,11 +183,11 @@ export default function Settings() {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setPriceUpdateMessage({
         type: 'error',
-        text: err.message || 'Error al actualizar precios',
+        text: err instanceof Error ? err.message : 'Error al actualizar precios',
       });
     } finally {
       setUpdatingPrices(false);
@@ -243,11 +247,11 @@ export default function Settings() {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setIdentifiersUpdateMessage({
         type: 'error',
-        text: err.message || 'Error al actualizar identificadores',
+        text: err instanceof Error ? err.message : 'Error al actualizar identificadores',
       });
     } finally {
       setUpdatingIdentifiers(false);
@@ -263,12 +267,10 @@ export default function Settings() {
   }
 
   return (
-    <Card>
+    <Card className="border-zinc-200 bg-white">
       <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Configuración</h1>
-        <p className="backoffice-section-description">
-          Ajustes generales del sistema
-        </p>
+        <p className="text-sm text-slate-500">Ajustes generales del sistema</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -342,7 +344,7 @@ export default function Settings() {
           Actualizaciones Masivas
         </h2>
 
-        <Card>
+        <Card className="border-zinc-200 bg-white">
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 font-semibold text-slate-700">
@@ -406,7 +408,7 @@ export default function Settings() {
         </Card>
 
         {/* Sección de actualización de Card Identifiers */}
-        <Card className="mt-6">
+        <Card className="mt-6 border-zinc-200 bg-white">
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 font-semibold text-slate-700">

@@ -1,18 +1,43 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Label, TextInput, Select, Card } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/Label';
+import { TextInput } from '@/components/ui/TextInput';
+import { Dropdown } from '@/components/ui/Dropdown';
+import { Card } from '@/components/ui/Card';
 import Image from 'next/image';
 import Papa from 'papaparse';
 import { HiDocumentText, HiSearch } from 'react-icons/hi';
 import ToastNotification from '@/components/ToastNotification';
 
 type CardData = {
+  id?: string;
+  oracle_id?: string;
+  lang?: string;
   name: string;
   set_name: string;
   collector_number: string;
   type_line: string;
   image_uris?: { normal: string };
   prices: { usd?: string; usd_foil?: string };
+};
+
+type ManaboxRow = {
+  Name: string;
+  'Set code': string;
+  'Set name': string;
+  'Collector number': string;
+  Foil: string;
+  Rarity: string;
+  Quantity: string;
+  'ManaBox ID': string;
+  'Scryfall ID': string;
+  'Purchase price': string;
+  Misprint: string;
+  Altered: string;
+  Condition: string;
+  Language: string;
+  'Purchase price currency': string;
 };
 
 type CardKingdomPrices = {
@@ -56,8 +81,8 @@ export default function CardSearch() {
       setCard(data);
 
       // Obtener precios de Card Kingdom usando scryfall_id y oracle_id
-      const scryfallId = (data as any).id;
-      const scryfallOracleId = (data as any).oracle_id;
+      const scryfallId = data.id;
+      const scryfallOracleId = data.oracle_id;
       if (scryfallId || scryfallOracleId) {
         try {
           const pricesRes = await fetch('/api/cardkingdom-prices', {
@@ -74,8 +99,8 @@ export default function CardSearch() {
           console.warn('No se pudieron obtener precios de Card Kingdom:', err);
         }
       }
-    } catch (err: any) {
-      setError(String(err));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -92,7 +117,7 @@ export default function CardSearch() {
         if (mounted && body?.fx_usdclp?.rate) {
           setFxRate(Number(body.fx_usdclp.rate));
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -129,11 +154,8 @@ export default function CardSearch() {
     // Prepare payload
     (async () => {
       try {
-        const scryfall_id = (card as any).id ?? null;
-        const scryfall_oracle_id = (card as any).oracle_id ?? null;
-        // Determine language from Scryfall data when available (card.lang)
-        const detectedLang =
-          (card as any)?.lang ?? (card as any)?._requested_language ?? null;
+        const scryfall_id = card.id ?? null;
+        const scryfall_oracle_id = card.oracle_id ?? null;
         const payload = {
           scryfall_id,
           scryfall_oracle_id,
@@ -145,7 +167,7 @@ export default function CardSearch() {
           image_url: card.image_uris?.normal ?? null,
           json_raw: card,
           foil: version === 'normal' ? 'nonfoil' : 'foil',
-          language: 'es',
+          language: (card.lang ?? language) || 'en',
           condition: 'near_mint',
           quantity: stock,
           price_usd:
@@ -171,8 +193,8 @@ export default function CardSearch() {
 
         // success
         setToast({ message: 'Carta agregada correctamente', type: 'success' });
-      } catch (err: any) {
-        const msg = String(err ?? 'Error');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
         setError(msg);
         setToast({ message: msg, type: 'error' });
       }
@@ -183,7 +205,7 @@ export default function CardSearch() {
     fileInputRef.current?.click();
   };
 
-  const handleImport = async (rows: any[]) => {
+  const handleImport = async (rows: ManaboxRow[]) => {
     setImportProgress({ total: rows.length, current: 0, errors: [] });
 
     const errors: string[] = [];
@@ -191,7 +213,7 @@ export default function CardSearch() {
 
     try {
       // Procesar en lotes de 50 para mejor rendimiento
-      const batchSize = 100;
+      const batchSize = 25;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
 
@@ -215,8 +237,8 @@ export default function CardSearch() {
             } else {
               successCount++;
             }
-          } catch (err: any) {
-            errors.push(`Fila ${globalIdx + 1} (${row.Name}): ${err.message}`);
+          } catch (err: unknown) {
+            errors.push(`Fila ${globalIdx + 1} (${row.Name}): ${err instanceof Error ? err.message : String(err)}`);
           }
         });
 
@@ -244,9 +266,9 @@ export default function CardSearch() {
           type: 'error',
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setToast({
-        message: `Error al importar: ${err.message}`,
+        message: `Error al importar: ${err instanceof Error ? err.message : String(err)}`,
         type: 'error',
       });
       setImporting(false);
@@ -276,8 +298,9 @@ export default function CardSearch() {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transform: (value: string) => value.trim(),
       complete: async (results) => {
-        const data = results.data as any[];
+        const data = results.data as ManaboxRow[];
 
         // Validar encabezados requeridos
         const requiredHeaders = [
@@ -328,10 +351,10 @@ export default function CardSearch() {
   };
 
   return (
-    <Card>
+    <Card className="border-zinc-200 bg-white">
       <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Agregar Cartas</h1>
-        <p className="backoffice-section-description">
+        <p className="text-sm text-slate-500">
           Busca y agrega cartas al inventario.
         </p>
       </div>
@@ -437,11 +460,25 @@ export default function CardSearch() {
               <Label htmlFor="language" className="mb-2">
                 Idioma (opcional)
               </Label>
-              <TextInput
+              <Dropdown
                 id="language"
+                variant="light"
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                placeholder="default: es"
+                onChange={setLanguage}
+                options={[
+                  { value: '', label: 'Default (EN)' },
+                  { value: 'en', label: 'Inglés (en)' },
+                  { value: 'es', label: 'Español (es)' },
+                  { value: 'fr', label: 'Francés (fr)' },
+                  { value: 'de', label: 'Alemán (de)' },
+                  { value: 'it', label: 'Italiano (it)' },
+                  { value: 'pt', label: 'Portugués (pt)' },
+                  { value: 'ja', label: 'Japonés (ja)' },
+                  { value: 'ko', label: 'Coreano (ko)' },
+                  { value: 'ru', label: 'Ruso (ru)' },
+                  { value: 'zhs', label: 'Chino simplificado (zhs)' },
+                  { value: 'zht', label: 'Chino tradicional (zht)' },
+                ]}
               />
             </div>
           </div>
@@ -562,45 +599,27 @@ export default function CardSearch() {
                       <Label htmlFor="version" className="mb-2">
                         Versión
                       </Label>
-                      <Select
+                      <Dropdown
                         id="version"
+                        variant="light"
                         value={version}
-                        onChange={(e) => setVersion(e.target.value as any)}
-                      >
-                        <option value="">Seleccionar versión</option>
-                        {(ckPrices?.price_retail_nonfoil_usd != null ||
-                          formatPrice(card.prices.usd) != null) && (
-                          <option value="normal">
-                            Normal — $
-                            {(
-                              ckPrices?.price_retail_nonfoil_usd ??
-                              formatPrice(card.prices.usd)!
-                            ).toFixed(2)}{' '}
-                            USD ($
-                            {(
-                              (ckPrices?.price_retail_nonfoil_usd ??
-                                formatPrice(card.prices.usd)!) * fxRate
-                            ).toFixed(0)}{' '}
-                            CLP)
-                          </option>
-                        )}
-                        {(ckPrices?.price_retail_foil_usd != null ||
-                          formatPrice(card.prices.usd_foil) != null) && (
-                          <option value="foil">
-                            Foil — $
-                            {(
-                              ckPrices?.price_retail_foil_usd ??
-                              formatPrice(card.prices.usd_foil)!
-                            ).toFixed(2)}{' '}
-                            USD ($
-                            {(
-                              (ckPrices?.price_retail_foil_usd ??
-                                formatPrice(card.prices.usd_foil)!) * fxRate
-                            ).toFixed(0)}{' '}
-                            CLP)
-                          </option>
-                        )}
-                      </Select>
+                        onChange={(v) => setVersion(v as '' | 'normal' | 'foil')}
+                        options={[
+                          { value: '', label: 'Seleccionar versión' },
+                          ...(ckPrices?.price_retail_nonfoil_usd != null || formatPrice(card.prices.usd) != null
+                            ? [{
+                                value: 'normal',
+                                label: `Normal — $${(ckPrices?.price_retail_nonfoil_usd ?? formatPrice(card.prices.usd)!).toFixed(2)} USD ($${((ckPrices?.price_retail_nonfoil_usd ?? formatPrice(card.prices.usd)!) * fxRate).toFixed(0)} CLP)`,
+                              }]
+                            : []),
+                          ...(ckPrices?.price_retail_foil_usd != null || formatPrice(card.prices.usd_foil) != null
+                            ? [{
+                                value: 'foil',
+                                label: `Foil — $${(ckPrices?.price_retail_foil_usd ?? formatPrice(card.prices.usd_foil)!).toFixed(2)} USD ($${((ckPrices?.price_retail_foil_usd ?? formatPrice(card.prices.usd_foil)!) * fxRate).toFixed(0)} CLP)`,
+                              }]
+                            : []),
+                        ]}
+                      />
                     </div>
 
                     <div>
@@ -620,7 +639,7 @@ export default function CardSearch() {
                   <Button
                     onClick={handleAddCard}
                     disabled={!version || stock <= 0}
-                    className="bg-bo-primary w-full"
+                    className="bg-zinc-900 hover:bg-zinc-800 w-full"
                   >
                     Agregar carta
                   </Button>
