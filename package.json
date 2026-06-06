@@ -3,18 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev --turbopack",
     "build": "next build",
+    "build:quiet": "next build > /dev/null 2>&1",
     "start": "next start",
     "lint": "eslint",
-    "update:cardkingdom": "node scripts/updateCardkingdomPrices.mjs"
+    "lint-staged": "lint-staged",
+    "test": "echo 'No tests configured' && exit 0",
+    "test:coverage": "echo 'No tests configured' && exit 0",
+    "test:coverage:quiet": "echo 'No tests configured' && exit 0",
+    "update:cardkingdom": "node scripts/updateCardkingdomPrices.mjs",
+    "prepare": "husky",
+    "knip": "knip"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,mjs,json}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.77.0",
     "@types/tar-stream": "^3.1.4",
-    "flowbite": "^3.1.2",
-    "flowbite-react": "^0.12.10",
+    "knip": "^6.16.0",
     "next": "^16.0.7",
     "papaparse": "^5.5.3",
     "react": "^19.2.1",
@@ -23,15 +39,18 @@
     "tar-stream": "^3.1.7"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.0",
     "typescript": "^5"
   }
 }
