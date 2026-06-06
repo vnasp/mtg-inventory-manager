@@ -1,6 +1,8 @@
 'use client';
 import React from 'react';
-import { Modal, Button, TextInput } from 'flowbite-react';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
+import { TextInput } from '@/components/ui/TextInput';
 
 type BulkMarkupModalProps = {
   show: boolean;

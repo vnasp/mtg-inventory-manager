@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import LeftPanel from '@/components/LeftPanel';
+import Image from 'next/image';
+import FilterPanel from '@/components/FilterPanel';
 import RightSheet from '@/components/RightSheet';
 import { calculatePriceClp } from '@/utils/priceCalculations';
+import type { CardOffer } from '@/types/card';
 
 type Props = {
-  offers: any[];
+  offers: CardOffer[];
   fxRate?: number;
   minCardPriceClp?: number;
 };
@@ -28,9 +30,6 @@ export default function CatalogClient({
   fxRate,
   minCardPriceClp,
 }: Props) {
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Calcular rango de precios real
   const priceRange = React.useMemo(() => {
     if (!offers || offers.length === 0 || !fxRate)
       return { min: 0, max: 100000 };
@@ -46,27 +45,19 @@ export default function CatalogClient({
 
     if (prices.length === 0) return { min: 0, max: 100000 };
 
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-
     return {
-      min: Math.floor(min / 1000) * 1000,
-      max: Math.ceil(max / 1000) * 1000,
+      min: Math.floor(Math.min(...prices) / 1000) * 1000,
+      max: Math.ceil(Math.max(...prices) / 1000) * 1000,
     };
   }, [offers, fxRate, minCardPriceClp]);
 
-  // Calcular expansiones disponibles
   const availableSets = React.useMemo(() => {
     if (!offers || offers.length === 0) return [];
-
     const sets = new Set<string>();
     offers.forEach((offer) => {
-      const card = offer.cards ?? offer.card ?? null;
-      if (card?.set_name) {
-        sets.add(card.set_name);
-      }
+      const card = offer.mtg_cards ?? offer.cards ?? offer.card ?? null;
+      if (card?.set_name) sets.add(card.set_name);
     });
-
     return Array.from(sets).sort();
   }, [offers]);
 
@@ -82,92 +73,51 @@ export default function CatalogClient({
     sortBy: 'newest',
   });
 
-  const handleFilterChange = (newFilters: Filters) => {
-    setFilters(newFilters);
-  };
+  const handleFilterChange = (newFilters: Filters) => setFilters(newFilters);
 
   return (
-    <>
-      {/* Layout moderno e-commerce */}
-      <div className="flex flex-col gap-8 lg:flex-row">
-        {/* Sidebar de filtros - Desktop */}
-        <aside className="hidden lg:block lg:w-72 lg:shrink-0">
-          <div className="sticky top-24">
-            <LeftPanel
-              onFilterChange={handleFilterChange}
-              fxRate={fxRate}
-              priceRange={priceRange}
-              availableSets={availableSets}
-            />
-          </div>
-        </aside>
-
-        {/* Contenido principal */}
-        <div className="flex-1">
-          <RightSheet
-            offers={offers}
-            fxRate={fxRate}
-            minCardPriceClp={minCardPriceClp}
-            filters={filters}
-            onOpenFilters={() => setShowFilters(true)}
+    /* Binder layout: left page | spine | right page */
+    <div
+      className="grid h-screen w-screen overflow-hidden bg-black bg-[url(/assets/img/bg_desktop.png)] bg-size-[auto_100%] bg-center bg-no-repeat"
+      style={{
+        gridTemplateColumns: '27% 9% 1fr',
+        paddingLeft: 'max(0px, calc((100vw - 100vh * 1672 / 941) / 1.4))',
+        paddingRight: 'max(0px, calc((100vw - 100vh * 1672 / 941) / 1.4))',
+        paddingTop: '2.5rem',
+      }}
+    >
+      {/* ── Left page: logo + filtros ── */}
+      <div className="flex flex-col overflow-y-auto">
+        <div className="mb-12 flex justify-center">
+          <Image
+            src="/assets/img/logo.png"
+            width={200}
+            height={80}
+            alt="MTG Inventory Manager"
+            className="h-auto w-full"
+            priority
           />
         </div>
-      </div>
-
-      {/* Mobile - Offcanvas Filtros */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm transform bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
-          showFilters ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex h-full flex-col overflow-y-auto">
-          {/* Header del panel */}
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4">
-            <h2 className="text-lg font-bold text-gray-900">Filtros</h2>
-            <button
-              onClick={() => setShowFilters(false)}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-              aria-label="Cerrar filtros"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Contenido del panel */}
-          <div className="p-4">
-            <LeftPanel
-              onFilterChange={(newFilters) => {
-                handleFilterChange(newFilters);
-                setShowFilters(false);
-              }}
-              fxRate={fxRate}
-              priceRange={priceRange}
-              availableSets={availableSets}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Overlay */}
-      {showFilters && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
-          onClick={() => setShowFilters(false)}
+        <FilterPanel
+          onFilterChange={handleFilterChange}
+          fxRate={fxRate}
+          priceRange={priceRange}
+          availableSets={availableSets}
         />
-      )}
-    </>
+      </div>
+
+      {/* ── Spine (sin contenido, solo espacio visual del cuadernillo) ── */}
+      <div />
+
+      {/* ── Right page: buscador + cartas ── */}
+      <div className="flex min-w-0 flex-col overflow-hidden pl-2">
+        <RightSheet
+          offers={offers}
+          fxRate={fxRate}
+          minCardPriceClp={minCardPriceClp}
+          filters={filters}
+        />
+      </div>
+    </div>
   );
 }

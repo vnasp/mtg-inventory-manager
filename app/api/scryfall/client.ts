@@ -31,7 +31,10 @@ export async function fetchCardBySetAndNumber(
       ? `${base}/${encodeURIComponent(lang.toLowerCase())}`
       : base;
 
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'User-Agent': 'MTGInventoryManager/1.0 (contact: valentinamr@gmail.com)' },
+    });
 
     if (!res.ok) {
       console.error('Scryfall responded with status', res.status);

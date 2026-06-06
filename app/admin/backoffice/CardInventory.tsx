@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Select } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Dropdown } from '@/components/ui/Dropdown';
 import ToastNotification from '@/components/ToastNotification';
 import InventoryFilters from './InventoryFilters';
 import InventoryTable from './InventoryTable';
@@ -18,7 +20,7 @@ type CardOffer = {
   markup_percent: number;
   price_source: string;
   active: boolean;
-  cards: {
+  mtg_cards: {
     id: string;
     name: string;
     set_code: string;
@@ -94,7 +96,7 @@ export default function CardInventory() {
         if (!res.ok) throw new Error('Error al cargar inventario');
         const data = await res.json();
         // Asegurar que markup_percent siempre tenga un valor
-        const offers = (data.data || []).map((offer: any) => ({
+        const offers = (data.data || []).map((offer: Record<string, unknown>) => ({
           ...offer,
           markup_percent: offer.markup_percent ?? 0,
         }));
@@ -131,7 +133,7 @@ export default function CardInventory() {
         const res = await fetch(`/api/settings?game=mtg`);
         const body = await res.json().catch(() => ({}));
         if (body?.fx_usdclp?.rate) setFxRate(Number(body.fx_usdclp.rate));
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -528,14 +530,6 @@ export default function CardInventory() {
   // Los offers ya vienen filtrados y paginados desde el servidor
   const currentItems = offers;
 
-  const isAllSelected =
-    currentItems.length > 0 &&
-    currentItems.every((offer) => selectedOfferIds.has(offer.id));
-  const isSomeSelected =
-    selectedOfferIds.size > 0 &&
-    currentItems.some((offer) => selectedOfferIds.has(offer.id)) &&
-    !isAllSelected;
-
   // Obtener cartas seleccionadas
   const selectedOffers = offers.filter((offer) =>
     selectedOfferIds.has(offer.id)
@@ -579,10 +573,10 @@ export default function CardInventory() {
   };
 
   return (
-    <Card>
+    <Card className="border-zinc-200 bg-white">
       <div className="mb-6 flex flex-col items-start justify-center">
         <h1>Inventario de Cartas</h1>
-        <p className="backoffice-section-description mb-4">
+        <p className="text-sm text-slate-500 mb-4">
           Listado completo de todas las cartas en stock ({totalItems}{' '}
           {totalItems === 1 ? 'carta' : 'cartas'})
         </p>
@@ -608,18 +602,20 @@ export default function CardInventory() {
               >
                 Mostrar:
               </label>
-              <Select
+              <Dropdown
                 id="itemsPerPage"
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                variant="light"
+                value={String(itemsPerPage)}
+                onChange={(v) => setItemsPerPage(Number(v))}
                 className="w-24"
                 sizing="sm"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </Select>
+                options={[
+                  { value: '10', label: '10' },
+                  { value: '20', label: '20' },
+                  { value: '50', label: '50' },
+                  { value: '100', label: '100' },
+                ]}
+              />
             </div>
 
             <div className="flex items-center gap-2">

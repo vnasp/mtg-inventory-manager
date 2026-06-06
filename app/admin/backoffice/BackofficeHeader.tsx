@@ -1,8 +1,8 @@
 'use client';
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import LogoutClient from './LogoutClient';
-import { Button } from 'flowbite-react';
+import { Button } from '@/components/ui/Button';
 import { HiExternalLink } from 'react-icons/hi';
 
 interface BackofficeHeaderProps {
@@ -14,28 +14,6 @@ interface BackofficeHeaderProps {
 }
 
 function BackofficeHeader({ user }: BackofficeHeaderProps) {
-  const [currentDateTime, setCurrentDateTime] = useState<string>('');
-
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      };
-      setCurrentDateTime(now.toLocaleDateString('es-ES', options));
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <header className="shrink-0 border-b border-slate-200 bg-white shadow-sm">
@@ -44,12 +22,12 @@ function BackofficeHeader({ user }: BackofficeHeaderProps) {
         <div className="flex items-center gap-4">
           <Image
             src="/assets/img/logo.png"
-            width={50}
-            height={50}
+            width={200}
+            height={96}
             alt="Logo"
-            className="h-10 w-auto"
+            className="h-24 w-auto"
           />
-          <div>
+          <div className="flex flex-col items-start">
             <h1 className="text-lg font-bold text-slate-900">Backoffice</h1>
             <p className="text-xs text-slate-500">Panel de administración</p>
           </div>

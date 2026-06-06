@@ -5,7 +5,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const set = url.searchParams.get("set");
   const num = url.searchParams.get("num");
-  const lang = url.searchParams.get("lang") ?? undefined;
+  const lang = url.searchParams.get("lang") || undefined;
 
   if (!set || !num) {
     return NextResponse.json({ error: "missing parameters" }, { status: 400 });

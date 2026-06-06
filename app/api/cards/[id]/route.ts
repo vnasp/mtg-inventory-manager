@@ -9,7 +9,7 @@ export async function PATCH(
     const params = await (context.params as
       | Promise<{ id: string }>
       | { id: string });
-    const offerId = (params as any).id;
+    const offerId = params.id;
     const body = await req.json().catch(() => ({}));
 
     const { quantity, active, markup_percent } = body as {
@@ -40,34 +40,28 @@ export async function PATCH(
       }
 
       // Si la cantidad es 0, desactivar automáticamente
-      const updateData: any = { quantity: qNum, updated_at: now };
+      const updateData: { quantity: number; updated_at: string; active?: boolean } = { quantity: qNum, updated_at: now };
       if (qNum === 0) {
         updateData.active = false;
       }
 
-      const upd = await supabase
-        .from('card_offers')
+      const { error: updError } = await supabase
+        .from('mtg_card_offers')
         .update(updateData)
         .eq('id', offerId);
 
-      if ((upd as any).error) {
-        return NextResponse.json(
-          { error: (upd as any).error.message },
-          { status: 500 }
-        );
+      if (updError) {
+        return NextResponse.json({ error: updError.message }, { status: 500 });
       }
     }
 
     if (active !== undefined) {
-      const upd = await supabase
-        .from('card_offers')
+      const { error: updError } = await supabase
+        .from('mtg_card_offers')
         .update({ active: active ? true : false, updated_at: now })
         .eq('id', offerId);
-      if ((upd as any).error) {
-        return NextResponse.json(
-          { error: (upd as any).error.message },
-          { status: 500 }
-        );
+      if (updError) {
+        return NextResponse.json({ error: updError.message }, { status: 500 });
       }
     }
 
@@ -83,23 +77,20 @@ export async function PATCH(
       // Redondear a 2 decimales para evitar overflow
       const roundedMarkup = Math.round(markupNum * 100) / 100;
 
-      const upd = await supabase
-        .from('card_offers')
+      const { error: updError } = await supabase
+        .from('mtg_card_offers')
         .update({ markup_percent: roundedMarkup, updated_at: now })
         .eq('id', offerId);
-      if ((upd as any).error) {
-        return NextResponse.json(
-          { error: (upd as any).error.message },
-          { status: 500 }
-        );
+      if (updError) {
+        return NextResponse.json({ error: updError.message }, { status: 500 });
       }
     }
 
     return NextResponse.json({ ok: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('PATCH /api/cards/[id] error', error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -117,21 +108,21 @@ export async function DELETE(
     const params = await (context.params as
       | Promise<{ id: string }>
       | { id: string });
-    const offerId = (params as any).id;
+    const offerId = params.id;
 
     // Cliente admin con service role key (solo servidor)
     const supabase = createAdminClient();
 
     // Primero obtener el card_id antes de eliminar
     const { data: offer } = await supabase
-      .from('card_offers')
+      .from('mtg_card_offers')
       .select('card_id')
       .eq('id', offerId)
       .single();
 
     // Eliminar la oferta de carta
     const { error } = await supabase
-      .from('card_offers')
+      .from('mtg_card_offers')
       .delete()
       .eq('id', offerId);
 
@@ -142,23 +133,23 @@ export async function DELETE(
     // Si tenemos el card_id, verificar si quedan más ofertas para esa carta
     if (offer?.card_id) {
       const { data: remainingOffers } = await supabase
-        .from('card_offers')
+        .from('mtg_card_offers')
         .select('id')
         .eq('card_id', offer.card_id)
         .limit(1);
 
       // Si no quedan ofertas, eliminar la carta también
       if (!remainingOffers || remainingOffers.length === 0) {
-        await supabase.from('cards').delete().eq('id', offer.card_id);
+        await supabase.from('mtg_cards').delete().eq('id', offer.card_id);
         console.log(`Deleted orphaned card ${offer.card_id}`);
       }
     }
 
     return NextResponse.json({ ok: true, message: 'Carta eliminada' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('DELETE /api/cards/[id] error', error);
     return NextResponse.json(
-      { error: (error as any)?.message ?? String(error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

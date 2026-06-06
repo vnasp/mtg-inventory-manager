@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { gunzipSync } from 'zlib';
 import * as tar from 'tar-stream';
@@ -25,21 +24,21 @@ async function downloadAndExtractCardIdentifiers() {
     const extract = tar.extract();
     let csvContent = '';
 
-    extract.on('entry', (header: any, stream: any, next: any) => {
+    extract.on('entry', (header: tar.Headers, stream: NodeJS.ReadableStream, next: () => void) => {
       if (
         header.name === 'cardIdentifiers.csv' ||
         header.name === 'AllPrintingsCSVFiles/cardIdentifiers.csv'
       ) {
         const chunks: Buffer[] = [];
-        stream.on('data', (chunk: any) => chunks.push(chunk));
+        stream.on('data', (chunk: Buffer) => chunks.push(chunk));
         stream.on('end', () => {
           csvContent = Buffer.concat(chunks).toString('utf8');
           next();
         });
-        stream.on('error', (err: any) => reject(err));
+        stream.on('error', (err: Error) => reject(err));
       } else {
         stream.on('end', () => next());
-        stream.resume();
+        (stream as NodeJS.ReadableStream & { resume(): void }).resume();
       }
     });
 
@@ -51,7 +50,7 @@ async function downloadAndExtractCardIdentifiers() {
       }
     });
 
-    extract.on('error', (err: any) => reject(err));
+    extract.on('error', (err: Error) => reject(err));
 
     // Crear un stream del buffer tar
     const readable = Readable.from(decompressed);
@@ -63,10 +62,10 @@ function parseCSV(csvContent: string) {
   const lines = csvContent.trim().split('\n');
   const headers = lines[0].split(',').map((h) => h.trim());
 
-  const rows = [];
+  const rows: Record<string, string | null>[] = [];
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i].split(',').map((v) => v.trim());
-    const row: any = {};
+    const row: Record<string, string | null> = {};
 
     headers.forEach((header, index) => {
       row[header] = values[index] || null;
@@ -78,9 +77,11 @@ function parseCSV(csvContent: string) {
   return rows;
 }
 
+type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
+
 async function replaceAllData(
-  supabase: any,
-  rows: any[],
+  supabase: SupabaseAdminClient,
+  rows: Record<string, string | null>[],
   batchSize = 1000,
   sendUpdate: (msg: string) => void
 ) {
@@ -115,7 +116,7 @@ async function replaceAllData(
   }
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -186,11 +187,11 @@ export async function POST(request: Request) {
         );
 
         controller.close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error al actualizar card identifiers:', error);
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ error: error.message || 'Error al actualizar card identifiers' })}\n\n`
+            `data: ${JSON.stringify({ error: error instanceof Error ? error.message : 'Error al actualizar card identifiers' })}\n\n`
           )
         );
         controller.close();

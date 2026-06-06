@@ -1,42 +1,40 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Toast } from 'flowbite-react';
+import { Toast } from '@/components/ui/Toast';
 
 type ToastNotificationProps = {
   message: string;
   type?: 'success' | 'error';
-  duration?: number; // ms
+  duration?: number;
   onClose?: () => void;
 };
 
-export default function ToastNotification({
+// Outer component uses key={message} so ToastInner remounts on every new message,
+// resetting dismissed state without needing refs or setState-in-effect.
+export default function ToastNotification(props: ToastNotificationProps) {
+  return <ToastInner key={props.message} {...props} />;
+}
+
+function ToastInner({
   message,
   type = 'success',
   duration = 4000,
   onClose,
 }: ToastNotificationProps) {
-  const [visible, setVisible] = useState<boolean>(!!message);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (!message) {
-      setVisible(false);
-      return;
-    }
-    setVisible(true);
+    if (!message) return;
     const t = setTimeout(() => {
-      setVisible(false);
+      setDismissed(true);
       onClose?.();
     }, duration);
     return () => clearTimeout(t);
-  }, [message, duration, onClose]);
+  }, [duration, message, onClose]);
 
-  if (!visible) return null;
+  if (!message || dismissed) return null;
 
   const isSuccess = type === 'success';
-
-  const accentBg = isSuccess
-    ? 'bg-emerald-50 border-emerald-200'
-    : 'bg-red-50 border-red-200';
   const accentText = isSuccess ? 'text-emerald-700' : 'text-red-700';
   const icon = isSuccess ? (
     <svg
@@ -81,7 +79,7 @@ export default function ToastNotification({
           type="button"
           aria-label="close"
           onClick={() => {
-            setVisible(false);
+            setDismissed(true);
             onClose?.();
           }}
           className="ml-3 inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900"
